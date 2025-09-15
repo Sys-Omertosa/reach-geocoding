@@ -1,7 +1,8 @@
 # REACH
 ### Real-time Emergency Alert Collection Hub
 AI-powered disaster alert system for Pakistan that automatically processes official emergency warnings and delivers location-targeted alerts to communities in real-time.
-##Problem
+
+## Problem
 Pakistan's disaster warning system suffers from critical gaps:
 
 Fragmented alerts across multiple agencies (NDMA, PDMAs, PMD)

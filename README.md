@@ -13,7 +13,7 @@ Technical reports that communities can't understand or act upon
 ## Solution
 REACH bridges the gap between institutional forecasting and community preparedness through:
 
-**Automated Processing**: AI extracts actionable information from official PDFs, maps, and reports
-**Location Targeting**: Precise alerts based on GPS coordinates and administrative boundaries
-**Real-time Delivery**: Mobile/web apps with push notifications and SMS integration
-**Community Integration**: Platform for verified field officers to submit ground-level reports
+**- Automated Processing**: AI extracts actionable information from official PDFs, maps, and reports.
+**- Location Targeting**: Precise alerts based on GPS coordinates and administrative boundaries.
+**- Real-time Delivery**: Mobile/web apps with push notifications and SMS integration.
+**- Community Integration**: Platform for verified field officers to submit ground-level reports.

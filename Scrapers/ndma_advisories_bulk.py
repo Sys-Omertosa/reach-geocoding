@@ -17,34 +17,36 @@ def ndma_advisory_entry(a_tag):
 
     # date
     date_tag = a_tag.find("p", class_="advisory-date")
-    date_text = date_tag.get_text(strip = True) if date_tag else None
+    date_text = date_tag.get_text(strip=True) if date_tag else None
 
     # title
-    title_tag = a_tag.find("h4", class_ = "advisory-title text-black")
-    title_text = title_tag.get_text(strip = True) if title_tag else None
+    title_tag = a_tag.find("h4", class_="advisory-title text-black")
+    title_text = title_tag.get_text(strip=True) if title_tag else None
 
     return {
         "date": date_text,
+        "source_agency": "NDMA",
         "title": title_text,
+        "source_page": BASE_URL,
         "filename": filename,
         "url": pdf_url
     }
 
 ##################################
 # Extract all advisory entries on a single page
-def ndma_advisory_page(page_number:int):
+def ndma_advisory_page(page_number: int):
 
     # parse html
     page_url = BASE_URL + f"?page={page_number}"
     response = requests.get(page_url)
-    response.raise_for_status
-    parsed_page = BeautifulSoup(response, "html.parser")
+    response.raise_for_status()
+    parsed_page = BeautifulSoup(response.content, "html.parser")
 
-    #find <a> tags
+    # find <a> tags
     advisories = []
-    for a in parsed_page.find_all("a", href = True):
+    for a in parsed_page.find_all("a", href=True):
         if a["href"].lower().endswith(".pdf"):
-            advisories.append(ndma_advisory_entry)
+            advisories.append(ndma_advisory_entry(a))
 
     return advisories
 
@@ -63,9 +65,9 @@ def ndma_advisories_bulk():
             print("No more advisories found")
             break
         print(f"Scraped page number {page_number}")
-        page_number +=1
+        page_number += 1
 
-        #Attached collected formatted data to list
+        # Attach collected formatted data to list
         all_data.extend(entries)
         time.sleep(2)
 
@@ -73,20 +75,21 @@ def ndma_advisories_bulk():
 
 ##################################
 # Dump all to CSV
-def save_ndma_csv_bulk(data, filename = "ndma_advisories_bulk.csv"):
+def save_ndma_csv_bulk(data, filename="ndma_advisories_bulk.csv"):
     
-    # GIve integar IDs
+    # Give integer IDs
     for i, entry in enumerate(data, start=1):
         entry["id"] = i
     
-    fieldnames = ["id", "source_agency", "date", "title", "source_page", "file_url"]
+    fieldnames = ["id", "date", "source_agency",  "title", "source_page", "filename", "file_url"]
 
-    with open(filename, "w", newline = "", encoding="utf-8") as f:
+    with open(filename, "w", newline="", encoding="utf-8") as f:
         writer = csv.DictWriter(f, fieldnames=fieldnames)
         writer.writeheader()
-        writer.writerow(data)
+        for entry in data:
+            writer.writerow(entry)
 
-        print(f"Saved {len(data)} advisries from NDMA to {filename}")
+        print(f"Saved {len(data)} advisories from NDMA to {filename}")
 
 
 if __name__ == "__main__":

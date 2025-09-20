@@ -81,7 +81,7 @@ def save_ndma_csv_bulk(data, filename="ndma_advisories_bulk.csv"):
     for i, entry in enumerate(data, start=1):
         entry["id"] = i
     
-    fieldnames = ["id", "date", "source_agency",  "title", "source_page", "filename", "file_url"]
+    fieldnames = ["id", "date", "source_agency",  "title", "source_page", "filename", "url"]
 
     with open(filename, "w", newline="", encoding="utf-8") as f:
         writer = csv.DictWriter(f, fieldnames=fieldnames)

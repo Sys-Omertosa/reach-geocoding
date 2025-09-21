@@ -10,7 +10,7 @@ BASE_URL = "https://www.ndma.gov.pk/advisories"
 
 ##################################
 # Extract metadata from a single entry
-def ndma_advisory_entry(a_tag):
+def process_entry(a_tag):
 
     pdf_url = a_tag["href"]
     filename = os.path.basename(pdf_url)
@@ -34,7 +34,7 @@ def ndma_advisory_entry(a_tag):
 
 ##################################
 # Extract all advisory entries on a single page
-def ndma_advisory_page(page_number: int):
+def process_page(page_number: int):
 
     # parse html
     page_url = BASE_URL + f"?page={page_number}"
@@ -46,13 +46,13 @@ def ndma_advisory_page(page_number: int):
     advisories = []
     for a in parsed_page.find_all("a", href=True):
         if a["href"].lower().endswith(".pdf"):
-            advisories.append(ndma_advisory_entry(a))
+            advisories.append(process_entry(a))
 
     return advisories
 
 ##################################
 # Iterate through all pages
-def ndma_advisories_bulk():
+def process_bulk():
 
     all_data = []
     page_number = 1
@@ -60,7 +60,7 @@ def ndma_advisories_bulk():
 
     # Loop through pages
     while True:
-        entries = ndma_advisory_page(page_number)
+        entries = process_page(page_number)
         if not entries:
             print("No more advisories found")
             break
@@ -75,7 +75,7 @@ def ndma_advisories_bulk():
 
 ##################################
 # Dump all to CSV
-def save_ndma_csv_bulk(data, filename="ndma_advisories_bulk.csv"):
+def dump_csv(data, filename="ndma_advisories_bulk.csv"):
     
     # Give integer IDs
     for i, entry in enumerate(data, start=1):
@@ -93,5 +93,5 @@ def save_ndma_csv_bulk(data, filename="ndma_advisories_bulk.csv"):
 
 
 if __name__ == "__main__":
-    advisories = ndma_advisories_bulk()
-    save_ndma_csv_bulk(advisories)
+    advisories = process_bulk()
+    dump_csv(advisories)

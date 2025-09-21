@@ -69,7 +69,7 @@ def ndma_advisories_bulk():
 
         # Attach collected formatted data to list
         all_data.extend(entries)
-        time.sleep(2)
+        time.sleep(10)
 
     return all_data
 

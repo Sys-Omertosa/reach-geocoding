@@ -1,3 +1,7 @@
 ./scraped_files
 ./venv
 venv/
+*.csv
+*.xlsx
+*.json
+

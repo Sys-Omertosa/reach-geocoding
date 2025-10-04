@@ -7,6 +7,8 @@ import csv
 # Scraper for bulk collecting all available NDMA advisories
 
 BASE_URL = "https://www.ndma.gov.pk/advisories"
+OUTPUT_FILE = "ndma_advisories_bulk.csv"
+DELAY = 5
 
 ##################################
 # Extract metadata from a single entry
@@ -69,13 +71,13 @@ def process_bulk():
 
         # Attach collected formatted data to list
         all_data.extend(entries)
-        time.sleep(10)
+        time.sleep(DELAY)
 
     return all_data
 
 ##################################
 # Dump all to CSV
-def dump_csv(data, filename="ndma_advisories_bulk.csv"):
+def dump_csv(data, filename=OUTPUT_FILE):
     
     # Give integer IDs
     for i, entry in enumerate(data, start=1):

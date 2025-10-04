@@ -90,7 +90,7 @@ def process_bulk():
             all_data.append(entry_data)
         
         page_number += 1
-        time.sleep(10)  # Be respectful to the server
+        time.sleep(5) 
 
     return all_data
 

@@ -1,11 +1,4 @@
-Enum location_level {
-  province
-  division
-  disctrict
-  tehsil
-  union_council
-}
-
+// Enums
 Enum severity_level {
   Extreme
   Severe
@@ -25,60 +18,101 @@ Enum certainty_level {
 
 Enum urgency_level {
   Immediate
-  Exxpected
+  Expected
   Future
   Past
   Unknown
 }
 
-Enum source {
-  NDMA
-  NEOC
-  PMD
-  KPK_PDMA
-  PB_PDMA
-  GB_PDMA
-  SD_PDMA
-  BA_PDMA
+Enum alert_status {
+  Actual
+  Exercise
+  Test
+  Draft
 }
 
-Enum category {
-  Geo	
-  Met	
-  Safety	
-  Fire
-  Health
-  Env
-  Transport
-  Infra	
-  CBRNE
-  Other
-}
-
-Table locations {
-  id integer [primary key]
-  name varchar
-  level location_level
-  parent location_level
-  polygon geometry(Polygon, 4326) [not null]
-  centroid geometry(Point, 4326)
-  bbox geometry(Polygon, 4326)
+Enum response_type {
+  Shelter
+  Evacuate
+  Prepare
+  Execute
+  Avoid
+  Monitor
+  None
 }
 
 Table alerts {
   id integer [primary key]
-  identifier varchar
-  sender source
-  web url
-  sent date
-  dates daterange
-  category category
-  event varchar
-  severity severity_level
-  urgency urgency_level
-  certainty certainty_level
-  description varchar
-  instruction varchar
-  areaDesc varchar (List)
-  polygon geometry(MultiPolygon, 4326)
+  identifier varchar [unique, not null]
+  sender varchar [not null] //NDMA, NEOC, PMD, etc.
+  sent datetimedate [not null]
+  
+  // Event details
+  event varchar [not null]
+  category varchar // Geo, Met, Safety, etc (can be comma-separated)
+  response_type response_type
+  
+  severity severity_level [not null]
+  urgency urgency_level [not null]
+  certainty certainty_level [not null]
+  
+  // Time validity
+  effective daterange
+  
+  // Content
+  headline varchar
+  description text
+  instruction text
+    
+  // Metadata
+  web_url varchar
+  created_at timestamp [default: `now()`]
+  
+  indexes {
+    (sender, sent)
+    identifier
+  }
 }
+
+Table alert_areas {
+  id integer [primary key]
+  alert_id integer [ref: > alerts.id, not null]
+  area_desc varchar [not null]
+  polygon geometry(MultiPolygon, 4326)
+  circle varchar // "lat,lon radius" format
+    
+  indexes {
+    alert_id
+    (polygon) [type: gist]
+  }
+}
+
+Table affected_locations {
+  id integer [primary key]
+  alert_id integer [ref: > alerts.id, not null]
+  location_id integer [ref: > locations.id, not null]
+  
+  indexes {
+    (alert_id, location_id) [unique]
+    location_id
+  }
+}
+
+Table locations {
+  id integer [primary key]
+  name varchar [not null]
+  level varchar [not null] // 'province', 'division', 'district', 'tehsil', 'union_council'
+  parent_id integer [ref: > locations.id]
+  
+  // Geometry
+  polygon geometry(Polygon, 4326)
+  centroid geometry(Point, 4326)
+  
+  indexes {
+    parent_id
+    (polygon) [type: gist]
+    (centroid) [type: gist]
+  }
+}
+
+Ref: "alert_areas"."id" < "alert_areas"."alert_id"

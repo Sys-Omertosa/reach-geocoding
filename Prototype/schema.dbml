@@ -1,0 +1,84 @@
+Enum location_level {
+  province
+  division
+  disctrict
+  tehsil
+  union_council
+}
+
+Enum severity_level {
+  Extreme
+  Severe
+  Moderate
+  Minor
+  Unknown
+}
+
+Enum certainty_level {
+  Observed
+  Very_Likely
+  Likely
+  Possible
+  Unlikely
+  Unknown
+}
+
+Enum urgency_level {
+  Immediate
+  Exxpected
+  Future
+  Past
+  Unknown
+}
+
+Enum source {
+  NDMA
+  NEOC
+  PMD
+  KPK_PDMA
+  PB_PDMA
+  GB_PDMA
+  SD_PDMA
+  BA_PDMA
+}
+
+Enum category {
+  Geo	
+  Met	
+  Safety	
+  Fire
+  Health
+  Env
+  Transport
+  Infra	
+  CBRNE
+  Other
+}
+
+Table locations {
+  id integer [primary key]
+  name varchar
+  level location_level
+  parent location_level
+  polygon geometry(Polygon, 4326) [not null]
+  centroid geometry(Point, 4326)
+  bbox geometry(Polygon, 4326)
+}
+
+Table alerts {
+  id integer [primary key]
+  identifier varchar
+  sender source
+  web url
+  sent date
+  dates daterange
+  category category
+  event varchar
+  severity severity_level
+  urgency urgency_level
+  certainty certainty_level
+  description varchar
+  instruction varchar
+  areaDesc varchar (List)
+  polygon geometry(MultiPolygon, 4326)
+}

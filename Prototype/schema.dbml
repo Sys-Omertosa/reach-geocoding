@@ -1,118 +1,83 @@
-// Enums
-Enum severity_level {
-  Extreme
-  Severe
-  Moderate
-  Minor
-  Unknown
+Table documents {
+  id uuid [primary key]
+  source text //NDMA, NEOC, etc.
+  posted_date date
+  title text
+  url text
+  filename text
+  filetype text
+  processed_at datetime [default: null]
 }
 
-Enum certainty_level {
-  Observed
-  Very_Likely
-  Likely
-  Possible
-  Unlikely
-  Unknown
+Table places {
+  id uuid [primary key]
+  name text [not null]
+  parent int [ref: > places.id, null]
+  hierarchy_level int //province, disctrict, etc.
+  polygon geometry(Polygon, 4326) [not null]
 }
 
-Enum urgency_level {
-  Immediate
+Table alerts {
+  id uuid [primary key]
+  document_id uuid [ref: > documents.id]
+
+  //Core CAP fields
+  category alert_category
+  event text
+  urgency alert_urgency
+  severity alert_severity
+  description text
+  instruction text
+
+  // Overall alert timeframe (can be overridden per location)
+  effective_from timestamp [not null]
+  effective_until timestamp [not null]
+}
+
+Table alert_areas {
+  id uuid [primary key]
+  alert_id uuid [not null, ref: > alerts.id]
+  place_id uuid [not null, ref: > places.id]
+
+  // Location-specific values (optional overrides)
+  specific_effective_from timestamp [default: null]
+  specific_effective_until timestamp [default: null]
+  specific_urgency alert_urgency [default: null]
+  specific_severity alert_severity [default: null]
+  specific_instruction text [default: null]
+
+  indexes {
+    (alert_id, place_id)
+  }
+}
+  
+Enum alert_category {
+  Geo
+  Met
+  Safety
+  Security
+  Rescue	
+  Fire	
+  Health	
+  Env
+  Transport	
+  Infra	
+  CBRNE	
+  Other
+}
+
+Enum alert_urgency {
+  Immediate 
   Expected
   Future
   Past
   Unknown
 }
 
-Enum alert_status {
-  Actual
-  Exercise
-  Test
-  Draft
+Enum alert_severity {
+  Extreme
+  Severe
+  Moderate
+  Minor
+  Unknown
 }
-
-Enum response_type {
-  Shelter
-  Evacuate
-  Prepare
-  Execute
-  Avoid
-  Monitor
-  None
-}
-
-Table alerts {
-  id integer [primary key]
-  identifier varchar [unique, not null]
-  sender varchar [not null] //NDMA, NEOC, PMD, etc.
-  sent datetimedate [not null]
-  
-  // Event details
-  event varchar [not null]
-  category varchar // Geo, Met, Safety, etc (can be comma-separated)
-  response_type response_type
-  
-  severity severity_level [not null]
-  urgency urgency_level [not null]
-  certainty certainty_level [not null]
-  
-  // Time validity
-  effective daterange
-  
-  // Content
-  headline varchar
-  description text
-  instruction text
-    
-  // Metadata
-  web_url varchar
-  created_at timestamp [default: `now()`]
-  
-  indexes {
-    (sender, sent)
-    identifier
-  }
-}
-
-Table alert_areas {
-  id integer [primary key]
-  alert_id integer [ref: > alerts.id, not null]
-  area_desc varchar [not null]
-  polygon geometry(MultiPolygon, 4326)
-  circle varchar // "lat,lon radius" format
-    
-  indexes {
-    alert_id
-    (polygon) [type: gist]
-  }
-}
-
-Table affected_locations {
-  id integer [primary key]
-  alert_id integer [ref: > alerts.id, not null]
-  location_id integer [ref: > locations.id, not null]
-  
-  indexes {
-    (alert_id, location_id) [unique]
-    location_id
-  }
-}
-
-Table locations {
-  id integer [primary key]
-  name varchar [not null]
-  level varchar [not null] // 'province', 'division', 'district', 'tehsil', 'union_council'
-  parent_id integer [ref: > locations.id]
-  
-  // Geometry
-  polygon geometry(Polygon, 4326)
-  centroid geometry(Point, 4326)
-  
-  indexes {
-    parent_id
-    (polygon) [type: gist]
-    (centroid) [type: gist]
-  }
-}
-
-Ref: "alert_areas"."id" < "alert_areas"."alert_id"

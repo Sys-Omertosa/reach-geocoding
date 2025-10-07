@@ -5,3 +5,5 @@ venv/
 *.xlsx
 *.json
 *.zip
+Prototype/Shapefiles
+Prototype/REACH Prototype.sql

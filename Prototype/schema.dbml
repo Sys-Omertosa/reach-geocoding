@@ -12,7 +12,7 @@ Table documents {
 Table places {
   id uuid [primary key]
   name text [not null]
-  parent int [ref: > places.id, null]
+  parent uuid [ref: > places.id, null]
   hierarchy_level int //province, disctrict, etc.
   polygon geometry(Polygon, 4326) [not null]
 }

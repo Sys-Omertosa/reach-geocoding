@@ -11,3 +11,5 @@ local.env
 other.env
 .env
 *.env
+*.sql
+Prototype/fake_data

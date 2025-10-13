@@ -9,3 +9,4 @@ Prototype/Shapefiles
 Prototype/REACH Prototype.sql
 local.env
 other.env
+*.env

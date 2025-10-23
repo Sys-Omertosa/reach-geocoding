@@ -257,13 +257,14 @@ export const DetailCard: React.FC<DetailCardProps> = ({
         <div className="p-6">
           {/* Header */}
           <div className="flex items-center justify-between mb-4">
-            <h2 className="text-xl font-bold text-gray-900">Details</h2>
+            <h2 className="text-xl font-bold text-gray-900">Alert Details</h2>
             <button
               onClick={onClose}
-              className="p-2 hover:bg-gray-100 rounded-full transition-colors"
+              className="p-2 hover:bg-red-50 rounded-full transition-colors group"
+              title="Close alert details"
             >
               <svg
-                className="w-5 h-5 text-gray-500"
+                className="w-6 h-6 text-gray-500 group-hover:text-red-600"
                 fill="none"
                 stroke="currentColor"
                 viewBox="0 0 24 24"
@@ -278,18 +279,30 @@ export const DetailCard: React.FC<DetailCardProps> = ({
             </button>
           </div>
 
+          {/* Interactive hint */}
+          <div className="mb-4 p-2 bg-blue-50 border border-blue-200 rounded-lg">
+            <p className="text-xs text-blue-700 flex items-center">
+              <svg
+                className="w-4 h-4 mr-1"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth="2"
+                  d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                />
+              </svg>
+              You can still zoom and pan the map while viewing this alert
+            </p>
+          </div>
+
           {/* Content */}
           <div>{renderContent()}</div>
         </div>
       </div>
-
-      {/* Overlay */}
-      <div
-        className={`fixed inset-0 bg-black bg-opacity-50 transition-opacity duration-300 z-40 ${
-          isVisible ? "opacity-100" : "opacity-0 invisible"
-        }`}
-        onClick={onClose}
-      />
     </>
   );
 };

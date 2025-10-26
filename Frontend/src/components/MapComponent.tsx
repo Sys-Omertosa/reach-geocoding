@@ -50,7 +50,7 @@ export const MapComponent = forwardRef<MapRef, MapProps>(
       // Create the map
       map.current = new mapboxgl.Map({
         container: mapContainer.current,
-        style: "mapbox://styles/mapbox/streets-v12",
+        style: "mapbox://styles/mapbox/dark-v11",
         center: center,
         zoom: zoom,
         preserveDrawingBuffer: true, // Help prevent context loss
@@ -72,17 +72,18 @@ export const MapComponent = forwardRef<MapRef, MapProps>(
       });
 
       // Add navigation controls
-      map.current.addControl(new mapboxgl.NavigationControl(), "top-right");
+      map.current.addControl(new mapboxgl.NavigationControl(), "top-left");
 
       // Add full screen control
-      map.current.addControl(new mapboxgl.FullscreenControl());
+      map.current.addControl(new mapboxgl.FullscreenControl(), "top-left");
 
       // Add scale control
       map.current.addControl(
         new mapboxgl.ScaleControl({
           maxWidth: 100,
           unit: "metric",
-        })
+        }),
+        "bottom-left"
       );
 
       // Handle map clicks if callback provided
@@ -238,8 +239,8 @@ export const MapComponent = forwardRef<MapRef, MapProps>(
           type: "fill",
           source: "highlighted-polygon",
           paint: {
-            "fill-color": "#ff0000",
-            "fill-opacity": 0.3,
+            "fill-color": "#00df31", // Caribbean green
+            "fill-opacity": 0.4,
           },
         });
 
@@ -249,7 +250,7 @@ export const MapComponent = forwardRef<MapRef, MapProps>(
           type: "line",
           source: "highlighted-polygon",
           paint: {
-            "line-color": "#ff0000",
+            "line-color": "#20c169", // Mountain meadow
             "line-width": 3,
           },
         });

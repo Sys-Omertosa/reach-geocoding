@@ -1,6 +1,8 @@
 import React, { useState, useRef, useMemo, useCallback } from "react";
 import { MapComponent, type MapRef } from "./components/MapComponent";
-import { DateRangeSelector } from "./components/DateRangeSelector";
+import { Navbar } from "./components/Navbar";
+import { FilterPanel } from "./components/FilterPanel";
+import { RecentAlertsPanel } from "./components/RecentAlertsPanel";
 import { DetailCard, type DetailData } from "./components/DetailCard";
 import { useAlerts } from "./hooks/useAlerts";
 import type { AlertWithLocation } from "./types/database";
@@ -132,6 +134,8 @@ const MAPBOX_TOKEN = import.meta.env.VITE_MAPBOX_TOKEN || "";
 export const App: React.FC = () => {
   const [selectedAlert, setSelectedAlert] = useState<DetailData | null>(null);
   const [isDetailCardVisible, setIsDetailCardVisible] = useState(false);
+  const [isFilterPanelVisible, setIsFilterPanelVisible] = useState(false);
+  const [isAlertsPanelVisible, setIsAlertsPanelVisible] = useState(false);
   const [dateFilters, setDateFilters] = useState<{
     startDate?: Date;
     endDate?: Date;
@@ -280,9 +284,9 @@ export const App: React.FC = () => {
     .map((alert) => ({
       coordinates: alert.additionalInfo!.coordinates as [number, number],
       popupContent: `
-        <div class="p-2">
-          <h3 class="font-semibold text-sm">${alert.title}</h3>
-          <p class="text-xs text-gray-600 mt-1">${alert.description.substring(
+        <div class="p-3" style="background: var(--rich-black); color: var(--anti-flash-white);">
+          <h3 class="font-semibold text-sm text-white mb-2">${alert.title}</h3>
+          <p class="text-xs text-gray-300 mt-1 mb-2">${alert.description.substring(
             0,
             100
           )}...</p>
@@ -296,10 +300,23 @@ export const App: React.FC = () => {
       onClick: () => handleAlertClick(alert),
     }));
 
+  // Panel toggle handlers
+  const handleToggleFilter = () => {
+    setIsFilterPanelVisible(!isFilterPanelVisible);
+  };
+
+  const handleToggleAlerts = () => {
+    setIsAlertsPanelVisible(!isAlertsPanelVisible);
+  };
+
+  const handleToggleDetails = () => {
+    setIsDetailCardVisible(!isDetailCardVisible);
+  };
+
   return (
-    <div className="relative h-screen w-screen overflow-hidden">
+    <div className="relative h-screen w-screen overflow-hidden bg-rich-black">
       {/* Fixed Background Map */}
-      <div className="fixed inset-0 z-0">
+      <div className="fixed inset-0 z-0" style={{ paddingLeft: "72px" }}>
         <MapComponent
           ref={mapRef}
           accessToken={MAPBOX_TOKEN}
@@ -311,102 +328,35 @@ export const App: React.FC = () => {
         />
       </div>
 
-      {/* Sidebar Overlay */}
-      <div className="absolute top-0 left-0 w-80 h-full bg-white shadow-lg overflow-y-auto z-20">
-        <div className="p-6">
-          <h1 className="text-2xl font-bold text-gray-900 mb-6">
-            REACH Dashboard
-          </h1>
+      {/* Navigation Bar */}
+      <Navbar
+        onToggleFilter={handleToggleFilter}
+        onToggleAlerts={handleToggleAlerts}
+        onToggleDetails={handleToggleDetails}
+        isFilterOpen={isFilterPanelVisible}
+        isAlertsOpen={isAlertsPanelVisible}
+        isDetailsOpen={isDetailCardVisible}
+      />
 
-          {/* Date Range Selector */}
-          <DateRangeSelector
-            onDateRangeChange={handleDateRangeChange}
-            className="mb-6"
-          />
+      {/* Filter Panel (Top Right) */}
+      <FilterPanel
+        isVisible={isFilterPanelVisible}
+        onClose={() => setIsFilterPanelVisible(false)}
+        onDateRangeChange={handleDateRangeChange}
+      />
 
-          {/* Alerts List */}
-          <div className="space-y-4">
-            <div className="flex items-center justify-between">
-              <h2 className="text-lg font-semibold text-gray-800">
-                Recent Alerts
-              </h2>
-              {loading && (
-                <div className="animate-spin h-4 w-4 border-2 border-blue-500 border-t-transparent rounded-full"></div>
-              )}
-            </div>
+      {/* Recent Alerts Panel (Bottom Left - Full Width) */}
+      <RecentAlertsPanel
+        isVisible={isAlertsPanelVisible}
+        onClose={() => setIsAlertsPanelVisible(false)}
+        alerts={currentAlerts}
+        loading={loading}
+        error={error}
+        onAlertClick={handleAlertClick}
+        onRefresh={refreshAlerts}
+      />
 
-            {error && (
-              <div className="p-3 bg-red-50 border border-red-200 rounded-lg">
-                <p className="text-sm text-red-700">
-                  Error loading alerts: {error}
-                </p>
-                <button
-                  onClick={refreshAlerts}
-                  className="mt-2 px-3 py-1 bg-red-600 text-white text-xs rounded hover:bg-red-700"
-                >
-                  Retry
-                </button>
-              </div>
-            )}
-
-            <div className="space-y-2 max-h-96 overflow-y-auto">
-              {currentAlerts.length === 0 && !loading && !error ? (
-                <div className="p-4 text-center text-gray-500">
-                  <p className="text-sm">No alerts found</p>
-                  <p className="text-xs mt-1">Try adjusting your date range</p>
-                </div>
-              ) : (
-                currentAlerts.map((alert) => (
-                  <div
-                    key={alert.id}
-                    onClick={() => handleAlertClick(alert)}
-                    className="p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors cursor-pointer"
-                  >
-                    <div className="flex items-start justify-between">
-                      <div className="flex-1">
-                        <h3 className="font-medium text-sm text-gray-900">
-                          {alert.title}
-                        </h3>
-                        <p className="text-xs text-gray-600 mt-1">
-                          {alert.description.substring(0, 80)}...
-                        </p>
-                        <div className="flex gap-2 mt-2">
-                          <span
-                            className={`px-2 py-1 text-xs rounded-full ${getSeverityColor(
-                              alert.severity
-                            )}`}
-                          >
-                            {alert.severity}
-                          </span>
-                          {alert.category && (
-                            <span className="px-2 py-1 text-xs rounded-full bg-blue-100 text-blue-800">
-                              {alert.category}
-                            </span>
-                          )}
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                ))
-              )}
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Map Controls Overlay */}
-      <div className="absolute top-4 z-20" style={{ left: "336px" }}>
-        <div className="bg-white rounded-lg shadow-md p-2">
-          <button
-            onClick={refreshAlerts}
-            className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors text-sm"
-          >
-            Refresh Alerts
-          </button>
-        </div>
-      </div>
-
-      {/* Detail Card */}
+      {/* Detail Card (Bottom Right) */}
       <DetailCard
         isVisible={isDetailCardVisible}
         data={selectedAlert}

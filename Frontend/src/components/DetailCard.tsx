@@ -40,28 +40,43 @@ export const DetailCard: React.FC<DetailCardProps> = ({
   const getSeverityColor = (severity?: string) => {
     switch (severity?.toLowerCase()) {
       case "extreme":
-        return "bg-red-100 text-red-800";
+        return "text-red-400";
       case "severe":
-        return "bg-orange-100 text-orange-800";
+        return "text-orange-400";
       case "moderate":
-        return "bg-yellow-100 text-yellow-800";
+        return "text-yellow-400";
       case "minor":
-        return "bg-green-100 text-green-800";
+        return "text-green-400";
       default:
-        return "bg-gray-100 text-gray-800";
+        return "text-gray-400";
+    }
+  };
+
+  const getSeverityNumber = (severity?: string): number => {
+    switch (severity?.toLowerCase()) {
+      case "extreme":
+        return 5;
+      case "severe":
+        return 4;
+      case "moderate":
+        return 3;
+      case "minor":
+        return 2;
+      default:
+        return 1;
     }
   };
 
   const getUrgencyColor = (urgency?: string) => {
     switch (urgency?.toLowerCase()) {
       case "immediate":
-        return "bg-red-100 text-red-800";
+        return "text-red-400";
       case "expected":
-        return "bg-orange-100 text-orange-800";
+        return "text-orange-400";
       case "future":
-        return "bg-blue-100 text-blue-800";
+        return "text-blue-400";
       default:
-        return "bg-gray-100 text-gray-800";
+        return "text-gray-400";
     }
   };
 
@@ -80,9 +95,9 @@ export const DetailCard: React.FC<DetailCardProps> = ({
   const renderContent = () => {
     if (!data) {
       return (
-        <div className="text-center text-gray-500 py-8">
+        <div className="text-center text-gray-400 py-8">
           <svg
-            className="w-12 h-12 mx-auto mb-4 text-gray-300"
+            className="w-12 h-12 mx-auto mb-4 text-gray-500"
             fill="none"
             stroke="currentColor"
             viewBox="0 0 24 24"
@@ -94,56 +109,19 @@ export const DetailCard: React.FC<DetailCardProps> = ({
               d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
             />
           </svg>
-          <p>Click on the map to view details</p>
+          <p className="text-white">Click on an alert to view details</p>
         </div>
       );
     }
 
     return (
       <div className="space-y-4">
-        {/* Title and description */}
+        {/* Alert Summary Section */}
         <div>
-          <h3 className="text-lg font-semibold text-gray-900 mb-2">
-            {data.title}
-          </h3>
-          <p className="text-gray-600 text-sm leading-relaxed">
-            {data.description}
-          </p>
-        </div>
-
-        {/* Badges */}
-        <div className="flex flex-wrap gap-2">
-          {data.category && (
-            <span className="px-2 py-1 text-xs font-medium bg-blue-100 text-blue-800 rounded-full">
-              {data.category}
-            </span>
-          )}
-          {data.severity && (
-            <span
-              className={`px-2 py-1 text-xs font-medium ${getSeverityColor(
-                data.severity
-              )} rounded-full`}
-            >
-              {data.severity}
-            </span>
-          )}
-          {data.urgency && (
-            <span
-              className={`px-2 py-1 text-xs font-medium ${getUrgencyColor(
-                data.urgency
-              )} rounded-full`}
-            >
-              {data.urgency}
-            </span>
-          )}
-        </div>
-
-        {/* Details */}
-        <div className="space-y-3">
-          {data.location && (
-            <div className="flex items-start gap-2">
+          <div className="flex items-center gap-3 mb-3">
+            <div className="flex items-center gap-2">
               <svg
-                className="w-4 h-4 text-gray-400 mt-0.5"
+                className="w-5 h-5 text-gray-400"
                 fill="none"
                 stroke="currentColor"
                 viewBox="0 0 24 24"
@@ -152,48 +130,117 @@ export const DetailCard: React.FC<DetailCardProps> = ({
                   strokeLinecap="round"
                   strokeLinejoin="round"
                   strokeWidth="2"
-                  d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"
+                  d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
                 />
               </svg>
-              <div>
-                <span className="text-sm font-medium text-gray-700">
-                  Location:
-                </span>
-                <span className="text-sm text-gray-600 ml-1">
-                  {data.location}
+              <span className="text-sm text-gray-400 font-medium">
+                Alert Information
+              </span>
+            </div>
+            {data.severity && (
+              <span
+                className={`text-sm font-bold ${getSeverityColor(
+                  data.severity
+                )}`}
+              >
+                Level {getSeverityNumber(data.severity)}
+              </span>
+            )}
+          </div>
+        </div>
+
+        {/* Vertical line separator */}
+        <div className="w-full h-px bg-stone"></div>
+
+        {/* Basic Information Table */}
+        <div className="space-y-2">
+          <div className="grid grid-cols-3 gap-2 py-1 px-2 hover:bg-rich-black hover:bg-opacity-30">
+            <div className="text-xs text-gray-400 font-medium">Alert ID</div>
+            <div className="col-span-2 text-xs text-gray-300 font-mono">
+              {data.id?.slice(0, 20) || "N/A"}...
+            </div>
+          </div>
+
+          {data.date && (
+            <div className="grid grid-cols-3 gap-2 py-1 px-2 hover:bg-rich-black hover:bg-opacity-30">
+              <div className="text-xs text-gray-400 font-medium">Date</div>
+              <div className="col-span-2 text-xs text-gray-300">
+                {new Date(data.date).toLocaleString("en-US", {
+                  month: "2-digit",
+                  day: "2-digit",
+                  year: "numeric",
+                  hour: "2-digit",
+                  minute: "2-digit",
+                  hour12: false,
+                })}
+              </div>
+            </div>
+          )}
+
+          {data.location && (
+            <div className="grid grid-cols-3 gap-2 py-1 px-2 hover:bg-rich-black hover:bg-opacity-30">
+              <div className="text-xs text-gray-400 font-medium">Location</div>
+              <div className="col-span-2 text-xs text-gray-300">
+                {data.location}
+              </div>
+            </div>
+          )}
+
+          {data.category && (
+            <div className="grid grid-cols-3 gap-2 py-1 px-2 hover:bg-rich-black hover:bg-opacity-30">
+              <div className="text-xs text-gray-400 font-medium">Category</div>
+              <div className="col-span-2 text-xs text-gray-300">
+                {data.category}
+              </div>
+            </div>
+          )}
+
+          {data.severity && (
+            <div className="grid grid-cols-3 gap-2 py-1 px-2 hover:bg-rich-black hover:bg-opacity-30">
+              <div className="text-xs text-gray-400 font-medium">Severity</div>
+              <div className="col-span-2">
+                <span
+                  className={`text-xs font-medium ${getSeverityColor(
+                    data.severity
+                  )}`}
+                >
+                  {data.severity}
                 </span>
               </div>
             </div>
           )}
 
-          {data.date && (
-            <div className="flex items-start gap-2">
-              <svg
-                className="w-4 h-4 text-gray-400 mt-0.5"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth="2"
-                  d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
-                />
-              </svg>
-              <div>
-                <span className="text-sm font-medium text-gray-700">Date:</span>
-                <span className="text-sm text-gray-600 ml-1">
-                  {formatDate(data.date)}
+          {data.urgency && (
+            <div className="grid grid-cols-3 gap-2 py-1 px-2 hover:bg-rich-black hover:bg-opacity-30">
+              <div className="text-xs text-gray-400 font-medium">Urgency</div>
+              <div className="col-span-2">
+                <span
+                  className={`text-xs font-medium ${getUrgencyColor(
+                    data.urgency
+                  )}`}
+                >
+                  {data.urgency}
                 </span>
               </div>
             </div>
           )}
 
           {data.source && (
-            <div className="flex items-start gap-2">
+            <div className="grid grid-cols-3 gap-2 py-1 px-2 hover:bg-rich-black hover:bg-opacity-30">
+              <div className="text-xs text-gray-400 font-medium">Source</div>
+              <div className="col-span-2 text-xs text-gray-300">
+                {data.source}
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* Description Section */}
+        {data.description && (
+          <div className="space-y-2">
+            <div className="flex items-center gap-2">
               <svg
-                className="w-4 h-4 text-gray-400 mt-0.5"
+                className="w-4 h-4 text-gray-400"
                 fill="none"
                 stroke="currentColor"
                 viewBox="0 0 24 24"
@@ -205,41 +252,60 @@ export const DetailCard: React.FC<DetailCardProps> = ({
                   d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
                 />
               </svg>
-              <div>
-                <span className="text-sm font-medium text-gray-700">
-                  Source:
-                </span>
-                <span className="text-sm text-gray-600 ml-1">
-                  {data.source}
-                </span>
-              </div>
+              <span className="text-sm text-gray-400 font-medium">
+                Description
+              </span>
             </div>
-          )}
-        </div>
-
-        {/* Instructions */}
-        {data.instruction && (
-          <div className="bg-blue-50 p-3 rounded-lg">
-            <h4 className="text-sm font-medium text-blue-900 mb-1">
-              Instructions
-            </h4>
-            <p className="text-sm text-blue-800">{data.instruction}</p>
+            <div className="bg-rich-black bg-opacity-30 p-3 rounded-lg">
+              <p className="text-xs text-gray-300 leading-relaxed">
+                {data.description}
+              </p>
+            </div>
           </div>
         )}
 
-        {/* Actions */}
+        {/* Instructions Section */}
+        {data.instruction && (
+          <div className="space-y-2">
+            <div className="flex items-center gap-2">
+              <svg
+                className="w-4 h-4 text-caribbean-green"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth="2"
+                  d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                />
+              </svg>
+              <span className="text-sm text-caribbean-green font-medium">
+                Emergency Instructions
+              </span>
+            </div>
+            <div className="bg-bangladesh-green bg-opacity-20 border border-bangladesh-green border-opacity-30 p-3 rounded-lg">
+              <p className="text-xs text-gray-300 leading-relaxed">
+                {data.instruction}
+              </p>
+            </div>
+          </div>
+        )}
+
+        {/* Action Buttons */}
         <div className="flex gap-2 pt-2">
           <button
             onClick={handleViewMore}
-            className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors text-sm font-medium"
+            className="flex-2 px-3 py-2 bg-bangladesh-green hover:bg-mountain-meadow text-white hover:text-dark-green rounded-md transition-colors text-xs font-medium cursor-pointer"
           >
-            View More Details
+            View Full Report
           </button>
           <button
             onClick={handleShare}
-            className="px-4 py-2 bg-gray-100 text-gray-700 rounded-md hover:bg-gray-200 transition-colors text-sm font-medium"
+            className="flex-1 px-3 py-2 border border-bangladesh-green text-bangladesh-green hover:bg-bangladesh-green hover:text-white rounded-md transition-colors text-xs font-medium cursor-pointer"
           >
-            Share
+            Share Alert
           </button>
         </div>
       </div>
@@ -250,21 +316,21 @@ export const DetailCard: React.FC<DetailCardProps> = ({
     <>
       {/* Detail card */}
       <div
-        className={`fixed top-0 right-0 h-full w-96 bg-white shadow-xl transform transition-transform duration-300 ease-in-out z-50 overflow-y-auto ${
-          isVisible ? "translate-x-0" : "translate-x-full"
+        className={`fixed bottom-4 right-4 w-96 h-80 frosted-glass transform transition-all duration-300 ease-in-out z-40 overflow-y-auto dark-scrollbar ${
+          isVisible ? "translate-y-0 opacity-100" : "translate-y-full opacity-0"
         }`}
       >
-        <div className="p-6">
+        <div className="p-4 h-full flex flex-col">
           {/* Header */}
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-xl font-bold text-gray-900">Alert Details</h2>
+          <div className="flex items-center justify-between mb-3">
+            <h2 className="text-base font-medium text-white">Alert Details</h2>
             <button
               onClick={onClose}
-              className="p-2 hover:bg-red-50 rounded-full transition-colors group"
+              className="p-1 hover:bg-bangladesh-green rounded-full transition-colors"
               title="Close alert details"
             >
               <svg
-                className="w-6 h-6 text-gray-500 group-hover:text-red-600"
+                className="w-4 h-4 text-gray-400"
                 fill="none"
                 stroke="currentColor"
                 viewBox="0 0 24 24"
@@ -279,28 +345,8 @@ export const DetailCard: React.FC<DetailCardProps> = ({
             </button>
           </div>
 
-          {/* Interactive hint */}
-          <div className="mb-4 p-2 bg-blue-50 border border-blue-200 rounded-lg">
-            <p className="text-xs text-blue-700 flex items-center">
-              <svg
-                className="w-4 h-4 mr-1"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth="2"
-                  d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-                />
-              </svg>
-              You can still zoom and pan the map while viewing this alert
-            </p>
-          </div>
-
           {/* Content */}
-          <div>{renderContent()}</div>
+          <div className="flex-1 overflow-y-auto">{renderContent()}</div>
         </div>
       </div>
     </>

@@ -85,60 +85,60 @@ export const DateRangeSelector: React.FC<DateRangeSelectorProps> = ({
   };
 
   return (
-    <div className={`bg-white p-4 rounded-lg shadow-md border ${className}`}>
-      <h3 className="text-lg font-semibold mb-3 text-gray-800">Date Range</h3>
-
+    <div className={className}>
       <div className="space-y-3">
-        <div>
-          <label
-            htmlFor="start-date"
-            className="block text-sm font-medium text-gray-700 mb-1"
-          >
-            Start Date
-          </label>
-          <input
-            type="date"
-            id="start-date"
-            value={startDate}
-            onChange={handleStartDateChange}
-            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-          />
+        <div className="grid grid-cols-2 gap-3">
+          <div>
+            <label
+              htmlFor="start-date"
+              className="block text-xs text-gray-400 font-medium mb-1"
+            >
+              From
+            </label>
+            <input
+              type="date"
+              id="start-date"
+              value={startDate}
+              onChange={handleStartDateChange}
+              className="filter-input w-full px-3 py-1.5 text-sm text-white focus:outline-none focus:ring-2 focus:ring-mountain-meadow focus:ring-opacity-50"
+            />
+          </div>
+
+          <div>
+            <label
+              htmlFor="end-date"
+              className="block text-xs text-gray-400 font-medium mb-1"
+            >
+              To
+            </label>
+            <input
+              type="date"
+              id="end-date"
+              value={endDate}
+              onChange={handleEndDateChange}
+              className="filter-input w-full px-3 py-1.5 text-sm text-white focus:outline-none focus:ring-2 focus:ring-mountain-meadow focus:ring-opacity-50"
+            />
+          </div>
         </div>
 
-        <div>
-          <label
-            htmlFor="end-date"
-            className="block text-sm font-medium text-gray-700 mb-1"
-          >
-            End Date
-          </label>
-          <input
-            type="date"
-            id="end-date"
-            value={endDate}
-            onChange={handleEndDateChange}
-            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-          />
-        </div>
-
-        <div className="flex gap-2">
+        <div className="grid grid-cols-3 gap-2">
           <button
             onClick={clearDates}
-            className="px-3 py-2 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300 transition-colors text-sm"
+            className="px-2 py-1 text-xs border border-stone text-stone hover:bg-stone hover:text-dark-green rounded-md transition-colors font-medium"
           >
             Clear
           </button>
           <button
             onClick={setLast7Days}
-            className="px-3 py-2 bg-blue-100 text-blue-700 rounded-md hover:bg-blue-200 transition-colors text-sm"
+            className="px-2 py-1 text-xs bg-bangladesh-green hover:bg-mountain-meadow text-white hover:text-dark-green rounded-md transition-colors font-medium"
           >
-            Last 7 Days
+            7 Days
           </button>
           <button
             onClick={setLast30Days}
-            className="px-3 py-2 bg-blue-100 text-blue-700 rounded-md hover:bg-blue-200 transition-colors text-sm"
+            className="px-2 py-1 text-xs bg-bangladesh-green hover:bg-mountain-meadow text-white hover:text-dark-green rounded-md transition-colors font-medium"
           >
-            Last 30 Days
+            30 Days
           </button>
         </div>
       </div>

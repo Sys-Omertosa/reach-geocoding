@@ -342,3 +342,45 @@ body {
   border-color: var(--mountain-meadow);
   background: rgba(112, 121, 125, 0.25);
 }
+
+/* Mobile responsive utilities */
+@media (max-width: 640px) {
+  /* Ensure panels don't exceed screen width */
+  .frosted-glass {
+    max-width: calc(100vw - 2rem);
+  }
+
+  /* Adjust navbar on mobile */
+  .nav-button {
+    width: 40px;
+    height: 40px;
+  }
+
+  /* Mobile panel stacking - prevent overlap */
+  .mobile-filter-panel {
+    top: 5rem !important; /* Account for 64px navbar + margin */
+    height: calc(50vh - 5rem) !important;
+  }
+
+  .mobile-alerts-panel {
+    bottom: 21rem !important; /* Above detail panel (320px + margin) */
+  }
+
+  .mobile-detail-panel {
+    bottom: 1rem !important;
+    height: 20rem !important; /* 320px */
+  }
+
+  /* Ensure text remains readable on mobile */
+  .mobile-text-adjust {
+    font-size: 0.875rem;
+    line-height: 1.25rem;
+  }
+}
+
+/* Tablet adjustments */
+@media (min-width: 641px) and (max-width: 1024px) {
+  .tablet-adjust {
+    max-width: calc(100vw - 4rem);
+  }
+}

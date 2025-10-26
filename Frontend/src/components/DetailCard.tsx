@@ -316,9 +316,16 @@ export const DetailCard: React.FC<DetailCardProps> = ({
     <>
       {/* Detail card */}
       <div
-        className={`fixed bottom-4 right-4 w-96 h-80 frosted-glass transform transition-all duration-300 ease-in-out z-40 overflow-y-auto dark-scrollbar ${
-          isVisible ? "translate-y-0 opacity-100" : "translate-y-full opacity-0"
-        }`}
+        className={`fixed 
+          bottom-4 left-4 right-4 h-80 
+          sm:bottom-4 sm:right-4 sm:left-auto sm:w-96 sm:max-w-96
+          frosted-glass transform transition-all duration-300 ease-in-out z-40 overflow-y-auto dark-scrollbar 
+          ${
+            isVisible
+              ? "translate-y-0 opacity-100"
+              : "translate-y-full opacity-0"
+          }
+        `}
       >
         <div className="p-4 h-full flex flex-col">
           {/* Header */}

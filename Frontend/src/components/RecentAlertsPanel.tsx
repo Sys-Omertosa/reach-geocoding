@@ -68,10 +68,16 @@ export const RecentAlertsPanel: React.FC<RecentAlertsPanelProps> = ({
 
   return (
     <div
-      className={`fixed bottom-4 left-22 right-4 h-80 frosted-glass transform transition-all duration-300 ease-in-out z-40 ${
-        isVisible ? "translate-y-0 opacity-100" : "translate-y-full opacity-0"
-      }`}
-      style={{ right: "416px" }} // Leave space for detail panel (400px + 16px margin)
+      className={`fixed 
+        bottom-4 left-4 right-4 h-80 
+        sm:left-22 sm:right-4
+        md:right-[416px]
+        lg:right-[416px]
+        frosted-glass transform transition-all duration-300 ease-in-out z-40 
+        ${
+          isVisible ? "translate-y-0 opacity-100" : "translate-y-full opacity-0"
+        }
+      `}
     >
       <div className="p-4 h-full flex flex-col">
         {/* Header */}

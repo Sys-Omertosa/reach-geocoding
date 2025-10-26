@@ -316,7 +316,7 @@ export const App: React.FC = () => {
   return (
     <div className="relative h-screen w-screen overflow-hidden bg-rich-black">
       {/* Fixed Background Map */}
-      <div className="fixed inset-0 z-0" style={{ paddingLeft: "72px" }}>
+      <div className="fixed inset-0 z-0 pt-16 sm:pt-0 sm:pl-[72px]">
         <MapComponent
           ref={mapRef}
           accessToken={MAPBOX_TOKEN}

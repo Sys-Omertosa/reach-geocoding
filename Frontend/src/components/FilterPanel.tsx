@@ -14,10 +14,19 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({
 }) => {
   return (
     <div
-      className={`fixed top-4 right-4 w-96 frosted-glass transform transition-all duration-300 ease-in-out z-40 overflow-hidden ${
-        isVisible ? "translate-y-0 opacity-100" : "-translate-y-full opacity-0"
-      }`}
-      style={{ bottom: "352px" }} // Leave gap above alerts panel (320px height + 16px margin + 16px gap)
+      className={`fixed 
+        top-20 right-4 left-4 
+        h-[calc(50vh-3rem)]
+        sm:top-4 sm:left-auto sm:w-96 sm:max-w-96 sm:h-auto
+        md:bottom-[352px]
+        sm:max-h-[calc(100vh-352px-2rem)]
+        frosted-glass transform transition-all duration-300 ease-in-out z-40 overflow-hidden 
+        ${
+          isVisible
+            ? "translate-y-0 opacity-100"
+            : "-translate-y-full opacity-0"
+        }
+      `}
     >
       <div className="h-full flex flex-col">
         {/* Header */}

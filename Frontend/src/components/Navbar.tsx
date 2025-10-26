@@ -18,23 +18,35 @@ export const Navbar: React.FC<NavbarProps> = ({
   isDetailsOpen,
 }) => {
   return (
-    <div className="fixed left-0 top-0 h-full w-18 bg-rich-black z-50 flex flex-col items-center py-6">
-      {/* Rotated REACH Logo */}
-      <div className="mb-12">
+    <div
+      className="fixed left-0 top-0 
+      w-full h-16 
+      sm:w-18 sm:h-full 
+      bg-rich-black z-50 
+      flex flex-row sm:flex-col items-center justify-center sm:justify-start 
+      px-4 py-2 sm:px-0 sm:py-6
+    "
+    >
+      {/* REACH Logo - Responsive */}
+      <div className="mr-auto sm:mr-0 sm:mb-12">
         <div
-          className="text-white font-bold text-lg tracking-wider opacity-60"
+          className="text-white font-bold text-lg tracking-wider opacity-60
+          sm:transform sm:rotate-180
+          hidden sm:block"
           style={{
             writingMode: "vertical-rl",
             textOrientation: "mixed",
-            transform: "rotate(180deg)",
           }}
         >
           REACH
         </div>
+        <div className="text-white font-bold text-lg tracking-wider opacity-60 sm:hidden">
+          REACH
+        </div>
       </div>
 
-      {/* Navigation Buttons - Centered */}
-      <div className="flex-1 flex flex-col justify-center space-y-6">
+      {/* Navigation Buttons - Responsive */}
+      <div className="flex flex-row space-x-4 sm:space-x-0 sm:space-y-6 sm:flex-col sm:flex-1 sm:justify-center">
         {/* Filter Panel Toggle */}
         <button
           onClick={onToggleFilter}
@@ -81,8 +93,8 @@ export const Navbar: React.FC<NavbarProps> = ({
         </button>
       </div>
 
-      {/* Copyright Text */}
-      <div className="mt-auto">
+      {/* Copyright Text - Hidden on Mobile */}
+      <div className="mt-auto hidden sm:block">
         <div
           className="text-white text-xs opacity-40 tracking-wide"
           style={{

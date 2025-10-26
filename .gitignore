@@ -12,3 +12,4 @@ other.env
 *.env
 *.sql
 Prototype/fake_data
+Frontend/env

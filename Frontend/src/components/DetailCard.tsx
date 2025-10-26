@@ -319,7 +319,7 @@ export const DetailCard: React.FC<DetailCardProps> = ({
         className={`fixed 
           bottom-4 left-4 right-4 h-80 
           sm:bottom-4 sm:right-4 sm:left-auto sm:w-96 sm:max-w-96
-          frosted-glass transform transition-all duration-300 ease-in-out z-40 overflow-y-auto dark-scrollbar 
+          frosted-glass transform transition-all duration-300 ease-in-out z-40 overflow-y-auto dark-scrollbar
           ${
             isVisible
               ? "translate-y-0 opacity-100"
@@ -353,7 +353,9 @@ export const DetailCard: React.FC<DetailCardProps> = ({
           </div>
 
           {/* Content */}
-          <div className="flex-1 overflow-y-auto">{renderContent()}</div>
+          <div className="flex-1 overflow-y-auto dark-scrollbar">
+            {renderContent()}
+          </div>
         </div>
       </div>
     </>

@@ -330,7 +330,7 @@ export const App: React.FC = () => {
           ref={mapRef}
           accessToken={MAPBOX_TOKEN}
           center={[69.3451, 30.3753]}
-          zoom={6}
+          // zoom={6}
           onMapClick={handleMapClick}
           markers={mapMarkers}
           className="w-full h-full"

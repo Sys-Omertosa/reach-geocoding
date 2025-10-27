@@ -125,7 +125,10 @@ export const MapComponent = forwardRef<MapRef, MapProps>(
         }
 
         if (onClick) {
-          marker.getElement().addEventListener("click", onClick);
+          marker.getElement().addEventListener("click", (e) => {
+            e.stopPropagation(); // Prevent map click event
+            onClick();
+          });
         }
 
         markersRef.current.push(marker);
@@ -239,8 +242,8 @@ export const MapComponent = forwardRef<MapRef, MapProps>(
           type: "fill",
           source: "highlighted-polygon",
           paint: {
-            "fill-color": "#00df31", // Caribbean green
-            "fill-opacity": 0.4,
+            "fill-color": "#006240", // Bangladesh green - more muted
+            "fill-opacity": 0.25,
           },
         });
 
@@ -250,8 +253,8 @@ export const MapComponent = forwardRef<MapRef, MapProps>(
           type: "line",
           source: "highlighted-polygon",
           paint: {
-            "line-color": "#20c169", // Mountain meadow
-            "line-width": 3,
+            "line-color": "#2fa96c", // Mint green - softer outline
+            "line-width": 2,
           },
         });
 

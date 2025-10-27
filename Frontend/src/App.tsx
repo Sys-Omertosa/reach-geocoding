@@ -182,11 +182,20 @@ export const App: React.FC = () => {
     }
   };
 
-  const handleMapClick = (coordinates: [number, number], _event: any) => {
+  const handleMapClick = (coordinates: [number, number], event: any) => {
     // Don't create a new alert if one is already selected
     // This allows users to interact with the map while viewing alert details
     if (isDetailCardVisible) {
       return;
+    }
+
+    // Check if click was on a marker (markers have .mapboxgl-marker class)
+    const target = event.originalEvent?.target;
+    if (
+      target &&
+      (target.closest(".mapboxgl-marker") || target.closest(".mapboxgl-popup"))
+    ) {
+      return; // Don't handle map click if clicking on marker or popup
     }
 
     // Only create a sample alert if no alert is currently selected

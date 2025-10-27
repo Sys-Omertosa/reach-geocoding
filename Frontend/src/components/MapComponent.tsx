@@ -29,7 +29,7 @@ export const MapComponent = forwardRef<MapRef, MapProps>(
     {
       accessToken,
       center = [69.3451, 30.3753], // Default to Pakistan center
-      zoom = 4,
+      zoom = 3,
       onMapClick,
       markers = [],
       className = "w-full h-full",

@@ -8,7 +8,7 @@ import csv
 
 BASE_URL = "https://www.ndma.gov.pk/advisories"
 OUTPUT_FILE = "ndma_advisories_bulk.csv"
-DELAY = 5
+DELAY = 2
 
 ##################################
 # Extract metadata from a single entry

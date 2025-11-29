@@ -4,18 +4,22 @@ export interface NavbarProps {
   onToggleFilter: () => void;
   onToggleAlerts: () => void;
   onToggleDetails: () => void;
+  onToggleSettings: () => void;
   isFilterOpen: boolean;
   isAlertsOpen: boolean;
   isDetailsOpen: boolean;
+  isSettingsOpen: boolean;
 }
 
 export const Navbar: React.FC<NavbarProps> = ({
   onToggleFilter,
   onToggleAlerts,
   onToggleDetails,
+  onToggleSettings,
   isFilterOpen,
   isAlertsOpen,
   isDetailsOpen,
+  isSettingsOpen,
 }) => {
   return (
     <div
@@ -89,6 +93,22 @@ export const Navbar: React.FC<NavbarProps> = ({
         >
           <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
             <path d="M14 2H6C4.9 2 4 2.9 4 4V20C4 21.1 4.9 22 6 22H18C19.1 22 20 21.1 20 20V8L14 2M18 20H6V4H13V9H18V20M8 12V14H16V12H8M8 16V18H13V16H8Z" />
+          </svg>
+        </button>
+
+        {/* Settings Toggle */}
+        <button
+          onClick={onToggleSettings}
+          className={`nav-button w-12 h-12 flex items-center justify-center transition-all duration-200 ${
+            isSettingsOpen
+              ? "nav-button-active text-white"
+              : "text-white opacity-60 hover:opacity-100"
+          }`}
+          title="Settings"
+        >
+          <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
           </svg>
         </button>
       </div>

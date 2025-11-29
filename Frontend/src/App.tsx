@@ -4,6 +4,7 @@ import { Navbar } from "./components/Navbar";
 import { FilterPanel } from "./components/FilterPanel";
 import { RecentAlertsPanel } from "./components/RecentAlertsPanel";
 import { DetailCard, type DetailData } from "./components/DetailCard";
+import { SettingsPanel } from "./components/SettingsPanel";
 import { useAlerts } from "./hooks/useAlerts";
 import type { AlertWithLocation } from "./types/database";
 
@@ -136,6 +137,7 @@ export const App: React.FC = () => {
   const [isDetailCardVisible, setIsDetailCardVisible] = useState(false);
   const [isFilterPanelVisible, setIsFilterPanelVisible] = useState(false);
   const [isAlertsPanelVisible, setIsAlertsPanelVisible] = useState(false);
+  const [isSettingsPanelVisible, setIsSettingsPanelVisible] = useState(false);
   const [dateFilters, setDateFilters] = useState<{
     startDate?: Date;
     endDate?: Date;
@@ -312,14 +314,35 @@ export const App: React.FC = () => {
   // Panel toggle handlers
   const handleToggleFilter = () => {
     setIsFilterPanelVisible(!isFilterPanelVisible);
+    if (!isFilterPanelVisible) {
+      setIsSettingsPanelVisible(false);
+    }
   };
 
   const handleToggleAlerts = () => {
     setIsAlertsPanelVisible(!isAlertsPanelVisible);
+    if (!isAlertsPanelVisible) {
+      setIsSettingsPanelVisible(false);
+    }
   };
 
   const handleToggleDetails = () => {
     setIsDetailCardVisible(!isDetailCardVisible);
+    if (!isDetailCardVisible) {
+      setIsSettingsPanelVisible(false);
+    }
+  };
+
+  const handleToggleSettings = () => {
+    const newVisibility = !isSettingsPanelVisible;
+    setIsSettingsPanelVisible(newVisibility);
+    
+    if (newVisibility) {
+      // Close other panels when settings is opened
+      setIsFilterPanelVisible(false);
+      setIsAlertsPanelVisible(false);
+      setIsDetailCardVisible(false);
+    }
   };
 
   return (
@@ -342,9 +365,11 @@ export const App: React.FC = () => {
         onToggleFilter={handleToggleFilter}
         onToggleAlerts={handleToggleAlerts}
         onToggleDetails={handleToggleDetails}
+        onToggleSettings={handleToggleSettings}
         isFilterOpen={isFilterPanelVisible}
         isAlertsOpen={isAlertsPanelVisible}
         isDetailsOpen={isDetailCardVisible}
+        isSettingsOpen={isSettingsPanelVisible}
       />
 
       {/* Filter Panel (Top Right) */}
@@ -371,6 +396,12 @@ export const App: React.FC = () => {
         data={selectedAlert}
         onClose={handleDetailCardClose}
         onActionClick={handleDetailCardAction}
+      />
+
+      {/* Settings Panel (Full Screen Popup) */}
+      <SettingsPanel
+        isVisible={isSettingsPanelVisible}
+        onClose={() => setIsSettingsPanelVisible(false)}
       />
     </div>
   );

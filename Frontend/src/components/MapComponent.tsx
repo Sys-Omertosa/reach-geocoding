@@ -1,5 +1,6 @@
 import { useEffect, useRef, forwardRef, useImperativeHandle } from "react";
 import mapboxgl from "mapbox-gl";
+import customStyle from "./style.json";
 
 export interface MapProps {
   accessToken: string;
@@ -50,7 +51,8 @@ export const MapComponent = forwardRef<MapRef, MapProps>(
       // Create the map
       map.current = new mapboxgl.Map({
         container: mapContainer.current,
-        style: "mapbox://styles/mapbox/dark-v11",
+        // style: "mapbox://styles/mapbox/dark-v11",
+        style: customStyle,
         center: center,
         zoom: zoom,
         preserveDrawingBuffer: true, // Help prevent context loss

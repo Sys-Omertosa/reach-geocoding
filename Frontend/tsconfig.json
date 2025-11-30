@@ -8,6 +8,10 @@
     "skipLibCheck": true,
     "jsx": "react-jsx",
 
+    //JSON import
+    "resolveJsonModule": true,
+    "esModuleInterop": true,
+
     /* Bundler mode */
     "moduleResolution": "bundler",
     "allowImportingTsExtensions": true,

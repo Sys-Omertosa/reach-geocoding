@@ -52,7 +52,7 @@ export const MapComponent = forwardRef<MapRef, MapProps>(
       map.current = new mapboxgl.Map({
         container: mapContainer.current,
         // style: "mapbox://styles/mapbox/dark-v11",
-        style: customStyle,
+        style: customStyle as any,
         center: center,
         zoom: zoom,
         preserveDrawingBuffer: true, // Help prevent context loss

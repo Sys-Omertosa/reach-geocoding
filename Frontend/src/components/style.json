@@ -172,17 +172,9 @@
             ["exponential", 1.2],
             ["zoom"],
             5,
-            0.4,
+            0.9,
             7,
-            [
-                "interpolate",
-                ["exponential", 1.2],
-                ["measure-light", "brightness"],
-                0.1,
-                0.2,
-                0.3,
-                0
-            ]
+            0.7
         ]
     },
     "imports": [

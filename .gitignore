@@ -13,3 +13,4 @@ other.env
 *.sql
 Prototype/fake_data
 Frontend/env
+__pycache__/

@@ -1,0 +1,87 @@
+// Enums
+Enum alert_category {
+  Geo
+  Met
+  Safety
+  Security
+  Rescue
+  Fire
+  Health
+  Env
+  Transport
+  Infra
+  CBRNE
+  Other
+}
+
+Enum alert_urgency {
+  Immediate
+  Expected
+  Future
+  Past
+  Unknown
+}
+
+Enum alert_severity {
+  Extreme
+  Severe
+  Moderate
+  Minor
+  Unknown
+}
+
+// Tables
+Table alerts {
+  id uuid [primary key]
+  document_id uuid
+  category alert_category
+  event text
+  urgency alert_urgency
+  severity alert_severity
+  description text
+  instruction text
+  effective_from timestamptz [not null]
+  effective_until timestamptz [not null]
+}
+
+Table alert_areas {
+  id uuid [primary key]
+  alert_id uuid [not null]
+  place_id uuid
+  specific_effective_from timestamptz
+  specific_effective_until timestamptz
+  specific_urgency alert_urgency
+  specific_severity alert_severity
+  specific_instruction text
+}
+
+Table documents {
+  id uuid [primary key]
+  source text [not null]
+  posted_date date
+  title text
+  url text [not null]
+  filename text [unique]
+  filetype text
+  processed_at timestamp
+  raw_text text
+  structured_text text
+}
+
+Table places {
+  id uuid [primary key]
+  name text [not null]
+  parent_id uuid
+  parent_name text
+  hierarchy_level integer
+  polygon geometry
+}
+
+// Foreign Keys
+Ref: alerts.document_id > documents.id
+
+Ref: alert_areas.alert_id > alerts.id
+
+Ref: alert_areas.place_id > places.id
+
+Ref: places.parent_id > places.id [delete: set null]

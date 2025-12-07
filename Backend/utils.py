@@ -11,9 +11,6 @@ def load_env():
 _env_loaded = load_env()
 
 def supabase_client():
-    if not is_env_loaded():
-        load_env()
-
     SUPABASE_URL = os.getenv("SUPABASE_URL")
     SUPABASE_SERVICE_KEY = os.getenv("SUPABASE_SERVICE_KEY")
     supabase: Client = create_client(SUPABASE_URL, SUPABASE_SERVICE_KEY)

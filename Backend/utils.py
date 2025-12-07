@@ -5,7 +5,7 @@ from supabase import create_client, Client
 
 def load_env():
     BASE_DIR = Path(__file__).resolve().parent
-    ENV = BASE_DIR / 'local.env'
+    ENV = BASE_DIR / '.env'
     load_dotenv(ENV, override=True)
 
 _env_loaded = load_env()

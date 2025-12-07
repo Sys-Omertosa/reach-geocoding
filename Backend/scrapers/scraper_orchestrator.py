@@ -1,8 +1,8 @@
-from Backend.utils import supabase_client
 import asyncio
 from httpx import AsyncClient
-from Backend.scrapers.parsers import NdmaParser, NeocParser
-from Backend.scrapers.base_scraper import BaseScraper
+from scrapers.parsers import NdmaParser, NeocParser
+from scrapers.base_scraper import BaseScraper
+from utils import supabase_client
 
 SCRAPER_CONFIGS = [
     {
@@ -35,7 +35,6 @@ async def main():
         try:
             count = await scraper.run()
             results[config['name']] = f"Added {count} new entries"
-            print(results)
         except Exception as e:
             results[config['name']] = f"Error: {str(e)}"
     

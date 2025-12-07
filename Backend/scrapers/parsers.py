@@ -2,7 +2,7 @@ from bs4 import BeautifulSoup
 import os
 import pandas as pd
 from urllib.parse import urlparse, parse_qs, unquote
-from Backend.scrapers.base_scraper import BaseParser
+from scrapers.base_scraper import BaseParser
 
 def convert_secure_url(url):
     """Convert secure viewer URLs to direct URLs"""

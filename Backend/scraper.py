@@ -1,10 +1,10 @@
 from fastapi import FastAPI, HTTPException, Request
 import asyncio
 import os
-from Backend.scrapers.scraper_orchestrator import main as run_scrapers
-from Backend.utils import _load_env
+from scrapers.scraper_orchestrator import main as run_scrapers
+from utils import load_env
 
-_load_env()
+load_env()
 app = FastAPI()
 SECRET_KEY = os.getenv("SECRET_KEY")
 

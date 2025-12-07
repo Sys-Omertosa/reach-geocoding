@@ -19,9 +19,10 @@ class BaseScraper:
             new_entries = self.filter_new(entries)
             if new_entries:
                 upserted = self.upsert(new_entries)
+                return upserted
         except Exception as e:
             print("Error filtering new entries")
-        return len(new_entries)
+        return 0
     
     def filter_new(self, entries):
         if not entries:
@@ -36,6 +37,7 @@ class BaseScraper:
                 'filter_new_documents',
                 {'filenames': filenames}
             ).execute()
+
             missing_filenames = {item['filename'] for item in response.data}
             new_entries = [
                 entry for entry in entries 

@@ -2,7 +2,7 @@ from bs4 import BeautifulSoup
 import os
 import pandas as pd
 from urllib.parse import urlparse, parse_qs, unquote
-from base_scraper import BaseParser
+from Backend.scrapers.base_scraper import BaseParser
 
 def convert_secure_url(url):
     """Convert secure viewer URLs to direct URLs"""
@@ -95,7 +95,6 @@ class NeocParser(BaseParser):
 
             # URL
             a_tag = div.find("a", href=True)
-            
             if not a_tag or not a_tag.get("href"):
                 continue
             

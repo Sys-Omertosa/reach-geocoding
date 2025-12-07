@@ -1,13 +1,8 @@
-import sys
-import os
-sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-
-##########################################
-from utils import supabase_client
+from Backend.utils import supabase_client
 import asyncio
 from httpx import AsyncClient
-from parsers import NdmaParser, NeocParser
-from base_scraper import BaseScraper
+from Backend.scrapers.parsers import NdmaParser, NeocParser
+from Backend.scrapers.base_scraper import BaseScraper
 
 SCRAPER_CONFIGS = [
     {
@@ -36,11 +31,11 @@ async def main():
             parser=config['parser'],
             db_client=db_client,
             http_client=http_client
-        )
-        
+        )        
         try:
             count = await scraper.run()
             results[config['name']] = f"Added {count} new entries"
+            print(results)
         except Exception as e:
             results[config['name']] = f"Error: {str(e)}"
     

@@ -229,24 +229,24 @@ export const LoginPage: React.FC<LoginPageProps> = ({
               </p>
 
               {/* Error/Message Display */}
-              <div 
+              <div
                 className="overflow-hidden transition-all duration-300 ease-in-out"
-                style={{ 
-                  maxHeight: error ? '80px' : '0',
+                style={{
+                  maxHeight: error ? "80px" : "0",
                   opacity: error ? 1 : 0,
-                  marginBottom: error ? '16px' : '0'
+                  marginBottom: error ? "16px" : "0",
                 }}
               >
                 <div className="p-3 bg-red-900/50 border border-red-700 rounded-md">
                   <p className="text-sm text-red-200">{error}</p>
                 </div>
               </div>
-              <div 
+              <div
                 className="overflow-hidden transition-all duration-300 ease-in-out"
-                style={{ 
-                  maxHeight: message ? '80px' : '0',
+                style={{
+                  maxHeight: message ? "80px" : "0",
                   opacity: message ? 1 : 0,
-                  marginBottom: message ? '16px' : '0'
+                  marginBottom: message ? "16px" : "0",
                 }}
               >
                 <div className="p-3 bg-green-900/50 border border-green-700 rounded-md">
@@ -285,10 +285,10 @@ export const LoginPage: React.FC<LoginPageProps> = ({
                   />
                 </div>
 
-                <div 
+                <div
                   className="overflow-hidden transition-all duration-300 ease-in-out"
-                  style={{ 
-                    maxHeight: isSignUp ? '80px' : '0',
+                  style={{
+                    maxHeight: isSignUp ? "80px" : "0",
                     opacity: isSignUp ? 1 : 0,
                   }}
                 >

@@ -6,6 +6,8 @@ export interface MapProps {
   accessToken: string;
   center?: [number, number];
   zoom?: number;
+  theme?: string;
+  showPolygons?: boolean;
   onMapClick?: (
     coordinates: [number, number],
     event: mapboxgl.MapMouseEvent
@@ -31,6 +33,8 @@ export const MapComponent = forwardRef<MapRef, MapProps>(
       accessToken,
       center = [69.3451, 30.3753], // Default to Pakistan center
       zoom = 3,
+      theme = "custom",
+      showPolygons = true,
       onMapClick,
       markers = [],
       className = "w-full h-full",
@@ -48,11 +52,16 @@ export const MapComponent = forwardRef<MapRef, MapProps>(
       // Set the access token
       mapboxgl.accessToken = accessToken;
 
+      // Determine map style based on theme
+      const mapStyle =
+        theme === "dark-v11"
+          ? "mapbox://styles/mapbox/dark-v11"
+          : (customStyle as any);
+
       // Create the map
       map.current = new mapboxgl.Map({
         container: mapContainer.current,
-        // style: "mapbox://styles/mapbox/dark-v11",
-        style: customStyle as any,
+        style: mapStyle,
         center: center,
         zoom: zoom,
         preserveDrawingBuffer: true, // Help prevent context loss
@@ -104,6 +113,18 @@ export const MapComponent = forwardRef<MapRef, MapProps>(
         }
       };
     }, [accessToken]); // Only depend on accessToken to minimize re-initialization
+
+    // Handle theme changes
+    useEffect(() => {
+      if (!map.current) return;
+
+      const mapStyle =
+        theme === "dark-v11"
+          ? "mapbox://styles/mapbox/dark-v11"
+          : (customStyle as any);
+
+      map.current.setStyle(mapStyle);
+    }, [theme]);
 
     // Update markers when markers prop changes
     useEffect(() => {
@@ -240,6 +261,12 @@ export const MapComponent = forwardRef<MapRef, MapProps>(
     const highlightPolygon = (geometry: any) => {
       if (!map.current) {
         console.warn("Map not available for highlighting");
+        return;
+      }
+
+      // Don't show polygons if setting is disabled
+      if (!showPolygons) {
+        console.log("Polygon display is disabled in settings");
         return;
       }
 

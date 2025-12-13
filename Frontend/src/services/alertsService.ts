@@ -30,7 +30,7 @@ class AlertsService {
    */
   async getAlerts(
     filters?: AlertsFilters,
-    limit = 10,
+    limit = 1000,
     offset = 0
   ): Promise<AlertsServiceResult<AlertWithLocation[]>> {
     try {

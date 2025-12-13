@@ -10,6 +10,9 @@ export interface FilterPanelProps {
     severities: AlertSeverity[];
     categories: AlertCategory[];
   }) => void;
+  defaultSeverity?: string;
+  defaultTimeRange?: string;
+  isLoading?: boolean;
 }
 
 export const FilterPanel: React.FC<FilterPanelProps> = ({
@@ -17,41 +20,124 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({
   onClose,
   onDateRangeChange,
   onFiltersChange,
+  defaultSeverity = "all",
+  defaultTimeRange = "all",
+  isLoading = false,
 }) => {
-  const [selectedSeverities, setSelectedSeverities] = useState<AlertSeverity[]>([
-    "Extreme",
-    "Severe",
-    "Moderate",
-    "Minor",
-  ]);
-  
-  const [selectedCategories, setSelectedCategories] = useState<AlertCategory[]>([
-    "Met",
-    "Geo",
-    "Security",
-    "Health",
-    "Env",
-    "Infra",
-  ]);
+  // Helper function to get severities based on minimum severity setting
+  const getSeveritiesFromDefault = (minSeverity: string): AlertSeverity[] => {
+    const allSeverities: AlertSeverity[] = [
+      "Extreme",
+      "Severe",
+      "Moderate",
+      "Minor",
+      "Unknown",
+    ];
 
-  // Apply filters automatically when they change
+    if (minSeverity === "all" || !minSeverity) {
+      return allSeverities;
+    }
+
+    const severityOrder: Record<string, number> = {
+      unknown: -1,
+      minor: 0,
+      moderate: 1,
+      severe: 2,
+      extreme: 3,
+    };
+
+    const minLevel = severityOrder[minSeverity.toLowerCase()];
+    if (minLevel === undefined) return allSeverities;
+
+    return allSeverities.filter((sev) => {
+      const level = severityOrder[sev.toLowerCase()];
+      return level >= minLevel;
+    });
+  };
+
+  const [selectedSeverities, setSelectedSeverities] = useState<AlertSeverity[]>(
+    ["Extreme", "Severe", "Moderate", "Minor", "Unknown"]
+  );
+
+  const [selectedCategories, setSelectedCategories] = useState<AlertCategory[]>(
+    [
+      "Met",
+      "Geo",
+      "Security",
+      "Health",
+      "Env",
+      "Infra",
+      "Safety",
+      "Rescue",
+      "Fire",
+      "Transport",
+      "CBRNE",
+      "Other",
+    ]
+  );
+
+  const [initialDateRange, setInitialDateRange] = useState<{
+    start: Date | null;
+    end: Date | null;
+  }>({ start: null, end: null });
+
+  const [isInitialized, setIsInitialized] = useState(false);
+
+  // Initialize severities and date range together to avoid multiple refetches
   useEffect(() => {
-    console.log("FilterPanel: Severities or categories changed, calling onFiltersChange");
-    console.log("FilterPanel: onFiltersChange exists?", !!onFiltersChange);
-    console.log("FilterPanel: onFiltersChange type:", typeof onFiltersChange);
-    console.log("Selected severities:", selectedSeverities);
-    console.log("Selected categories:", selectedCategories);
-    if (onFiltersChange) {
-      console.log("FilterPanel: Calling onFiltersChange now...");
+    if (isLoading) return;
+
+    const newSeverities = getSeveritiesFromDefault(defaultSeverity);
+    setSelectedSeverities(newSeverities);
+
+    const now = new Date();
+    let startDate: Date | null = null;
+    let endDate: Date | null = null;
+
+    switch (defaultTimeRange) {
+      case "24h":
+        startDate = new Date(now.getTime() - 24 * 60 * 60 * 1000);
+        endDate = now;
+        break;
+      case "7d":
+        startDate = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+        endDate = now;
+        break;
+      case "30d":
+        startDate = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+        endDate = now;
+        break;
+      case "90d":
+        startDate = new Date(now.getTime() - 90 * 24 * 60 * 60 * 1000);
+        endDate = now;
+        break;
+      case "all":
+      default:
+        startDate = null;
+        endDate = null;
+        break;
+    }
+
+    setInitialDateRange({ start: startDate, end: endDate });
+
+    // Only trigger callbacks after state updates are done
+    setTimeout(() => {
+      onDateRangeChange(startDate, endDate);
+      onFiltersChange?.({
+        severities: newSeverities,
+        categories: selectedCategories,
+      });
+      setIsInitialized(true);
+    }, 0);
+  }, [defaultSeverity, defaultTimeRange, isLoading]);
+  useEffect(() => {
+    if (isInitialized && onFiltersChange) {
       onFiltersChange({
         severities: selectedSeverities,
         categories: selectedCategories,
       });
-      console.log("FilterPanel: onFiltersChange called successfully");
-    } else {
-      console.error("FilterPanel: onFiltersChange is not defined!");
     }
-  }, [selectedSeverities, selectedCategories]);
+  }, [selectedSeverities, selectedCategories, onFiltersChange, isInitialized]);
 
   const handleSeverityToggle = (severity: AlertSeverity) => {
     console.log("FilterPanel: Toggling severity:", severity);
@@ -83,14 +169,36 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({
   };
 
   const handleResetAll = () => {
-    const allSeverities: AlertSeverity[] = ["Extreme", "Severe", "Moderate", "Minor"];
-    const allCategories: AlertCategory[] = ["Met", "Geo", "Security", "Health", "Env", "Infra"];
-    
-    setSelectedSeverities(allSeverities);
+    const allCategories: AlertCategory[] = [
+      "Met",
+      "Geo",
+      "Security",
+      "Health",
+      "Env",
+      "Infra",
+      "Safety",
+      "Rescue",
+      "Fire",
+      "Transport",
+      "CBRNE",
+      "Other",
+    ];
+
+    // Reset to user's default severity settings
+    const resetSeverities = getSeveritiesFromDefault(defaultSeverity);
+
+    setSelectedSeverities(resetSeverities);
     setSelectedCategories(allCategories);
-    onDateRangeChange(null, null);
+
+    // Reset to user's default time range
+    if (initialDateRange.start && initialDateRange.end) {
+      onDateRangeChange(initialDateRange.start, initialDateRange.end);
+    } else {
+      onDateRangeChange(null, null);
+    }
+
     onFiltersChange?.({
-      severities: allSeverities,
+      severities: resetSeverities,
       categories: allCategories,
     });
   };
@@ -178,6 +286,8 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({
             </div>
             <DateRangeSelector
               onDateRangeChange={onDateRangeChange}
+              initialStartDate={initialDateRange.start || undefined}
+              initialEndDate={initialDateRange.end || undefined}
               className="!p-0 !shadow-none !bg-transparent"
             />
           </div>
@@ -204,10 +314,31 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({
             </div>
             <div className="grid grid-cols-2 gap-2">
               {[
-                { name: "Extreme" as AlertSeverity, level: 5, color: "text-red-400" },
-                { name: "Severe" as AlertSeverity, level: 4, color: "text-orange-400" },
-                { name: "Moderate" as AlertSeverity, level: 3, color: "text-yellow-400" },
-                { name: "Minor" as AlertSeverity, level: 2, color: "text-green-400" },
+                {
+                  name: "Extreme" as AlertSeverity,
+                  level: 5,
+                  color: "text-red-400",
+                },
+                {
+                  name: "Severe" as AlertSeverity,
+                  level: 4,
+                  color: "text-orange-400",
+                },
+                {
+                  name: "Moderate" as AlertSeverity,
+                  level: 3,
+                  color: "text-yellow-400",
+                },
+                {
+                  name: "Minor" as AlertSeverity,
+                  level: 2,
+                  color: "text-green-400",
+                },
+                {
+                  name: "Unknown" as AlertSeverity,
+                  level: 1,
+                  color: "text-gray-400",
+                },
               ].map((severity) => (
                 <label
                   key={severity.name}
@@ -249,12 +380,19 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({
               </span>
             </div>
             <div className="space-y-1">
-              {[{ display: "Weather", value: "Met" as AlertCategory },
+              {[
+                { display: "Weather", value: "Met" as AlertCategory },
                 { display: "Geological", value: "Geo" as AlertCategory },
                 { display: "Security", value: "Security" as AlertCategory },
                 { display: "Health", value: "Health" as AlertCategory },
                 { display: "Environmental", value: "Env" as AlertCategory },
                 { display: "Infrastructure", value: "Infra" as AlertCategory },
+                { display: "Safety", value: "Safety" as AlertCategory },
+                { display: "Rescue", value: "Rescue" as AlertCategory },
+                { display: "Fire", value: "Fire" as AlertCategory },
+                { display: "Transport", value: "Transport" as AlertCategory },
+                { display: "CBRNE", value: "CBRNE" as AlertCategory },
+                { display: "Other", value: "Other" as AlertCategory },
               ].map((category) => (
                 <label
                   key={category.value}
@@ -266,7 +404,9 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({
                     checked={selectedCategories.includes(category.value)}
                     onChange={() => handleCategoryToggle(category.value)}
                   />
-                  <span className="text-xs text-gray-300">{category.display}</span>
+                  <span className="text-xs text-gray-300">
+                    {category.display}
+                  </span>
                 </label>
               ))}
             </div>
@@ -293,13 +433,13 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({
               </span>
             </div>
             <div className="flex gap-2">
-              <button 
+              <button
                 onClick={handleApplyFilters}
                 className="flex-1 px-3 py-1.5 text-xs bg-bangladesh-green hover:bg-mountain-meadow text-white hover:text-dark-green rounded-md transition-colors font-medium"
               >
                 Apply Filters
               </button>
-              <button 
+              <button
                 onClick={handleResetAll}
                 className="flex-1 px-3 py-1.5 text-xs border border-stone text-stone hover:bg-stone hover:text-dark-green rounded-md transition-colors font-medium"
               >

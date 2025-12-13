@@ -46,13 +46,13 @@ export function useAlerts(options: UseAlertsOptions = {}) {
   }, [
     filters?.startDate?.toISOString(),
     filters?.endDate?.toISOString(),
-    filters?.severities?.join(','),
-    filters?.categories?.join(','),
+    filters?.severities?.join(","),
+    filters?.categories?.join(","),
     filters?.severity,
     filters?.category,
     filters?.urgency,
     filters?.source,
-    activeOnly
+    activeOnly,
   ]);
 
   const refetch = useCallback(() => {

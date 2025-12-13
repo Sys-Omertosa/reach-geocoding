@@ -595,13 +595,13 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({
 
           {/* Content */}
           <div className="flex-1 overflow-y-auto dark-scrollbar p-4 space-y-4">
-            {/* Version 1.0.0 */}
+            {/* Version v1.0.0 */}
             <div className="space-y-3">
               <div className="flex items-center gap-3">
                 <span className="px-2 py-1 bg-bangladesh-green text-white text-xs font-bold rounded">
                   v1.0.0
                 </span>
-                <span className="text-xs text-gray-400">December 13, 2025</span>
+                <span className="text-xs text-gray-400">December 14, 2025</span>
               </div>
               <div className="space-y-2 text-sm">
                 <h4 className="text-white font-semibold flex items-center gap-2">
@@ -609,14 +609,47 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({
                 </h4>
                 <ul className="space-y-1 text-gray-300 pl-6">
                   <li className="list-disc">
-                    Real-time disaster alert monitoring for Nepal
+                    Customizable settings with persistent storage
                   </li>
                   <li className="list-disc">
-                    Interactive map with polygon visualization for affected
-                    areas
+                    Updated filtering options for alerts
+                  </li>
+                </ul>
+                <h4 className="text-white font-semibold flex items-center gap-2">
+                  <span className="text-blue-400">🔧</span> Improvements
+                </h4>
+                <ul className="space-y-1 text-gray-300 pl-6">
+                  <li className="list-disc">
+                    Enhanced map theme and user interface
                   </li>
                   <li className="list-disc">
-                    Advanced filtering by category, severity, and urgency
+                    Improved alert scraping and processing logic
+                  </li>
+                  <li className="list-disc">
+                    Minor bug fixes and and user experience enhancements
+                  </li>
+                </ul>
+              </div>
+            </div>
+
+            {/* Version 0.8.0 */}
+            <div className="space-y-3 pt-4 border-t border-stone">
+              <div className="flex items-center gap-3">
+                <span className="px-2 py-1 bg-stone/30 text-white text-xs font-bold rounded">
+                  v0.8.0
+                </span>
+                <span className="text-xs text-gray-400">November 30, 2025</span>
+              </div>
+              <div className="space-y-2 text-sm">
+                <h4 className="text-white font-semibold flex items-center gap-2">
+                  <span className="text-caribbean-green">✨</span> New Features
+                </h4>
+                <ul className="space-y-1 text-gray-300 pl-6">
+                  <li className="list-disc">
+                    Polygon visualization for affected areas
+                  </li>
+                  <li className="list-disc">
+                    Advanced filtering by category and severity
                   </li>
                   <li className="list-disc">
                     User authentication with Supabase
@@ -625,7 +658,7 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({
                     Customizable settings with persistent storage
                   </li>
                   <li className="list-disc">
-                    Recent alerts panel with detailed information
+                    Updated recent alerts panel with detailed information
                   </li>
                   <li className="list-disc">
                     Date range selector for historical data
@@ -634,13 +667,13 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({
               </div>
             </div>
 
-            {/* Version 0.9.0 */}
-            <div className="space-y-3 pt-4 border-t border-stone/20">
+            {/* Version 0.7.0 */}
+            <div className="space-y-3 pt-4 border-t border-stone">
               <div className="flex items-center gap-3">
                 <span className="px-2 py-1 bg-stone/30 text-white text-xs font-bold rounded">
-                  v0.9.0
+                  v0.7.0
                 </span>
-                <span className="text-xs text-gray-400">December 10, 2025</span>
+                <span className="text-xs text-gray-400">November 11, 2025</span>
               </div>
               <div className="space-y-2 text-sm">
                 <h4 className="text-white font-semibold flex items-center gap-2">
@@ -651,7 +684,7 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({
                     Enhanced map performance with better rendering
                   </li>
                   <li className="list-disc">
-                    Improved data scraping from NDMA and NEOC sources
+                    Improved data scraping from NDMA and PDMA sources
                   </li>
                   <li className="list-disc">Better mobile responsiveness</li>
                   <li className="list-disc">
@@ -676,12 +709,12 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({
             </div>
 
             {/* Version 0.5.0 */}
-            <div className="space-y-3 pt-4 border-t border-stone/20">
+            <div className="space-y-3 pt-4 border-t border-stone">
               <div className="flex items-center gap-3">
                 <span className="px-2 py-1 bg-stone/30 text-white text-xs font-bold rounded">
                   v0.5.0
                 </span>
-                <span className="text-xs text-gray-400">December 1, 2025</span>
+                <span className="text-xs text-gray-400">October 26, 2025</span>
               </div>
               <div className="space-y-2 text-sm">
                 <h4 className="text-white font-semibold flex items-center gap-2">

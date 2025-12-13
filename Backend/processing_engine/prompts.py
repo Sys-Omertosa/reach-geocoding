@@ -1,12 +1,12 @@
 from PIL import Image
 from pathlib import Path
-from processor.doc_utils import to_base64
+from processing_engine.doc_utils import to_base64
 
 CURRENT_DIR = Path(__file__).parent
-markdown_prompt = """Extract all text from this image in markdown format. 
+markdown_prompt = """Extract all text as-is from this image in markdown format. 
 Preserve the structure, headings, lists, tables, diagrams and formatting as much as possible. 
 Return only the English markdown without any preamble. Format tables as markdown or html.
-Wrap contents from inside a diagram in a "<!-- Diagram -->" comment.
+Wrap contents from inside a diagram in "<!-- Diagram -->" comments before and after the diagram content.
 """
 
 # Pre-load example images at module initialization
@@ -26,45 +26,6 @@ def markdown_messages(base64_image):
                 {
                     "role": "system",
                     "content": "You are an OCR expert specializing in disaster alert documents. Extract all text exactly as it appears, preserving the reading order from top to bottom, left to right. Include text from maps, charts, and all visual elements."
-                },
-                {
-                    "role": "user",
-                    "content": [
-                        {
-                            "type": "text",
-                            "text": markdown_prompt
-                        },
-                        {
-                            "type": "image_url",
-                            "image_url": {
-                                "url": f"data:image/jpeg;base64,{EXAMPLE_IMAGES['9PPqpSasTb07UWPKiyXV']}"
-                            }
-                        }
-                    ]
-                },
-                {
-                    "role": "assistant",
-                    "content": """
-# Weather Advisory (24th to 29th September, 2025) 
-## National Emergency Operation Centre – National Disaster Management Authority
-
-A weak westerly wave is expected to bring partly cloudy weather along with isolated light rainfall over northern parts of the country from 25th to 26th of September, 2025.
-
-### Punjab: 
-Mostly hot and dry weather is expected in all parts of the province from 24th to 29th of Sep. 2025. However, partly cloudy weather along with isolated light rainfall is expected in Pothohar region including Islamabad, Rawalpindi, Chakwal, Jhelum, Attock and surrounding areas on 25th of Sep, 2025.
-
-### Balochistan:
-Mostly hot and dry weather is expected in all parts of the province from 24th to 29th of September, 2025.
-
-### Sindh: 
-Mostly hot and dry weather is expected in all parts of the province from 24th to 29th of September, 2025.
-
-### KP: 
-Mostly hot and dry weather is expected during this week. However, Partly cloudy weather along with isolated rainfall is expected in Chitral, Dir, Swat, Malakand, Buner, Mansehra, Abbottabad, Haripur, Swabi, Nowshera, Peshawar and surrounding areas from 25th to 26th of Sep, 2025.
-
-### GB & AJK: 
-Mostly dry weather is expected during this week. However, Partly cloudy weather along with isolated rainfall is expected in Astore, Skardu, Hunza, Bagh, Haveli, Rawalakot, Neelum Valley, Muzaffarabad from 25th to 26th of Sep, 2025.
-"""
                 },
                 {
                     "role": "user",
@@ -223,41 +184,6 @@ A **shallow Westerly wave** is likely to affect **Northern areas** of the countr
 
 For detailed guidelines please visit NDMA website: [https://www.ndma.gov.pk/guidelines](https://www.ndma.gov.pk/guidelines)
 <!-- Diagram -->
-"""
-                },
-                {
-                    "role": "user",
-                    "content": [
-                        {
-                            "type": "text",
-                            "text": markdown_prompt
-                        },
-                        {
-                            "type": "image_url",
-                            "image_url": {
-                                "url": f"data:image/jpeg;base64,{EXAMPLE_IMAGES['InXkmGJqQbCXx7aRyjXA']}"
-                            }
-                        }
-                    ]
-                },
-                {
-                    "role": "assistant",
-                    "content": """
-# **SMOG ADVISORY⚠️**  
-November, 2025
-
-## **Forecast**
-
-Smog, a mixture of smoke and fog, Moderate to Dense smog is expected across major cities in Punjab from November, due to calm winds and dry stable weather conditions. Areas most affected may include **Lahore, Gujranwala, Sheikhupura, Kasur, Nankana Sahib, Faisalabad, Multan, Bahawalpur, Rahim Yar Khan, and Bahawalnagar**.
-
-### **Possible Impacts**
-- Poor air quality may cause breathing difficulties, cough, and eye irritation, especially in children, the elderly, and those with health conditions.
-- Reduced visibility could disrupt travel and increase the risk of road accidents.
-
-### **Precaution Measures**
-- Limit outdoor exposure and wear a mask when going outside.
-- Avoid early morning and late-night travel when smog is heaviest.
-- Keep windows closed and use air purifiers or filters indoors if available.
 """
                 },
                 {
@@ -452,71 +378,6 @@ June 18th to June 22nd, 2025
 - Check on vulnerable individuals, such as the elderly and children, to ensure their safety and well-being.
 """
                 },
-                {
-                    "role": "user",
-                    "content": [
-                        {
-                            "type": "text",
-                            "text": markdown_prompt
-                        },
-                        {
-                            "type": "image_url",
-                            "image_url": {
-                                "url": f"data:image/jpeg;base64,{EXAMPLE_IMAGES['WMpJfGUze00GwXezWekr']}"
-                            }
-                        }
-                    ]
-                },
-                {
-                    "role": "assistant",
-                    "content": """
-Page 5 of 6
-***Annex-A***
-
-<!-- Diagram -->
-# GLOF Sites
-
-**Map Labels (GLOF Sites):**
-- Rabat Glacier
-- Darkhot Glacier
-- Sardar Gol Glacier
-- Yarkhun Lusht Glacier
-- Ishkoman Glacier
-- karam ber Glacier
-- Badswat glacier
-- Passu Glacier
-- Ultar Glacier
-- Gulmit Glacier
-- Gulkin Glacier
-- Yazghil Glacier
-- Brep Glacier
-- Booni Glacier
-- Mushi bar Glacier
-- Hundur Galcier
-- Hinarchi Glacier bagrote
-- Tersat Hundur Gl.
-- Yeshkuk Glaicer
-- Boq Glacier
-- Sonoghor Glacier
-- Reshun Glacier
-- Mian Koh Glacier 1&2
-- Dir Gole Glacier Arkary
-- Thalu II
-- Thalu I
-- Garum Chashma Glacier
-- Chianter Glacier
-- Chateboi Glacier
-
-**Legend**
-- 🔵 GLOF Sites
-- **—** District Boundary
-
-**Scale:** 0 - 20 - 40 - 80 - 120 km
-
-<!-- Diagram -->
-"""
-                },
-                
                 {
                     "role": "user",
                     "content": [

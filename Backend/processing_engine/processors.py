@@ -1,9 +1,9 @@
 import time
 import asyncio
 import sys
-from processor.llm_client import LLMClient
-from processor.prompts import markdown_messages
-from processor.doc_utils import fetch_file, stream_to_images, to_base64 
+from processing_engine.llm_client import LLMClient
+from processing_engine.prompts import markdown_messages
+from processing_engine.doc_utils import fetch_file, stream_to_images, to_base64 
 
 async def to_markdown(url: str) -> str:
     start = time.time()

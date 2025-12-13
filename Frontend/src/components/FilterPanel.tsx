@@ -1,17 +1,207 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { DateRangeSelector } from "./DateRangeSelector";
+import type { AlertSeverity, AlertCategory } from "../types/database";
 
 export interface FilterPanelProps {
   isVisible: boolean;
   onClose: () => void;
   onDateRangeChange: (startDate: Date | null, endDate: Date | null) => void;
+  onFiltersChange?: (filters: {
+    severities: AlertSeverity[];
+    categories: AlertCategory[];
+  }) => void;
+  defaultSeverity?: string;
+  defaultTimeRange?: string;
+  isLoading?: boolean;
 }
 
 export const FilterPanel: React.FC<FilterPanelProps> = ({
   isVisible,
   onClose,
   onDateRangeChange,
+  onFiltersChange,
+  defaultSeverity = "all",
+  defaultTimeRange = "all",
+  isLoading = false,
 }) => {
+  // Helper function to get severities based on minimum severity setting
+  const getSeveritiesFromDefault = (minSeverity: string): AlertSeverity[] => {
+    const allSeverities: AlertSeverity[] = [
+      "Extreme",
+      "Severe",
+      "Moderate",
+      "Minor",
+      "Unknown",
+    ];
+
+    if (minSeverity === "all" || !minSeverity) {
+      return allSeverities;
+    }
+
+    const severityOrder: Record<string, number> = {
+      unknown: -1,
+      minor: 0,
+      moderate: 1,
+      severe: 2,
+      extreme: 3,
+    };
+
+    const minLevel = severityOrder[minSeverity.toLowerCase()];
+    if (minLevel === undefined) return allSeverities;
+
+    return allSeverities.filter((sev) => {
+      const level = severityOrder[sev.toLowerCase()];
+      return level >= minLevel;
+    });
+  };
+
+  const [selectedSeverities, setSelectedSeverities] = useState<AlertSeverity[]>(
+    ["Extreme", "Severe", "Moderate", "Minor", "Unknown"]
+  );
+
+  const [selectedCategories, setSelectedCategories] = useState<AlertCategory[]>(
+    [
+      "Met",
+      "Geo",
+      "Security",
+      "Health",
+      "Env",
+      "Infra",
+      "Safety",
+      "Rescue",
+      "Fire",
+      "Transport",
+      "CBRNE",
+      "Other",
+    ]
+  );
+
+  const [initialDateRange, setInitialDateRange] = useState<{
+    start: Date | null;
+    end: Date | null;
+  }>({ start: null, end: null });
+
+  const [isInitialized, setIsInitialized] = useState(false);
+
+  // Initialize severities and date range together to avoid multiple refetches
+  useEffect(() => {
+    if (isLoading) return;
+
+    const newSeverities = getSeveritiesFromDefault(defaultSeverity);
+    setSelectedSeverities(newSeverities);
+
+    const now = new Date();
+    let startDate: Date | null = null;
+    let endDate: Date | null = null;
+
+    switch (defaultTimeRange) {
+      case "24h":
+        startDate = new Date(now.getTime() - 24 * 60 * 60 * 1000);
+        endDate = now;
+        break;
+      case "7d":
+        startDate = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+        endDate = now;
+        break;
+      case "30d":
+        startDate = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+        endDate = now;
+        break;
+      case "90d":
+        startDate = new Date(now.getTime() - 90 * 24 * 60 * 60 * 1000);
+        endDate = now;
+        break;
+      case "all":
+      default:
+        startDate = null;
+        endDate = null;
+        break;
+    }
+
+    setInitialDateRange({ start: startDate, end: endDate });
+
+    // Only trigger callbacks after state updates are done
+    setTimeout(() => {
+      onDateRangeChange(startDate, endDate);
+      onFiltersChange?.({
+        severities: newSeverities,
+        categories: selectedCategories,
+      });
+      setIsInitialized(true);
+    }, 0);
+  }, [defaultSeverity, defaultTimeRange, isLoading]);
+  useEffect(() => {
+    if (isInitialized && onFiltersChange) {
+      onFiltersChange({
+        severities: selectedSeverities,
+        categories: selectedCategories,
+      });
+    }
+  }, [selectedSeverities, selectedCategories, onFiltersChange, isInitialized]);
+
+  const handleSeverityToggle = (severity: AlertSeverity) => {
+    console.log("FilterPanel: Toggling severity:", severity);
+    setSelectedSeverities((prev) => {
+      const newSeverities = prev.includes(severity)
+        ? prev.filter((s) => s !== severity)
+        : [...prev, severity];
+      console.log("FilterPanel: New severities:", newSeverities);
+      return newSeverities;
+    });
+  };
+
+  const handleCategoryToggle = (category: AlertCategory) => {
+    console.log("FilterPanel: Toggling category:", category);
+    setSelectedCategories((prev) => {
+      const newCategories = prev.includes(category)
+        ? prev.filter((c) => c !== category)
+        : [...prev, category];
+      console.log("FilterPanel: New categories:", newCategories);
+      return newCategories;
+    });
+  };
+
+  const handleApplyFilters = () => {
+    onFiltersChange?.({
+      severities: selectedSeverities,
+      categories: selectedCategories,
+    });
+  };
+
+  const handleResetAll = () => {
+    const allCategories: AlertCategory[] = [
+      "Met",
+      "Geo",
+      "Security",
+      "Health",
+      "Env",
+      "Infra",
+      "Safety",
+      "Rescue",
+      "Fire",
+      "Transport",
+      "CBRNE",
+      "Other",
+    ];
+
+    // Reset to user's default severity settings
+    const resetSeverities = getSeveritiesFromDefault(defaultSeverity);
+
+    setSelectedSeverities(resetSeverities);
+    setSelectedCategories(allCategories);
+
+    // Reset to user's default time range
+    if (initialDateRange.start && initialDateRange.end) {
+      onDateRangeChange(initialDateRange.start, initialDateRange.end);
+    } else {
+      onDateRangeChange(null, null);
+    }
+
+    onFiltersChange?.({
+      severities: resetSeverities,
+      categories: allCategories,
+    });
+  };
   return (
     <div
       className={`fixed 
@@ -96,6 +286,8 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({
             </div>
             <DateRangeSelector
               onDateRangeChange={onDateRangeChange}
+              initialStartDate={initialDateRange.start || undefined}
+              initialEndDate={initialDateRange.end || undefined}
               className="!p-0 !shadow-none !bg-transparent"
             />
           </div>
@@ -122,10 +314,31 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({
             </div>
             <div className="grid grid-cols-2 gap-2">
               {[
-                { name: "Extreme", level: 5, color: "text-red-400" },
-                { name: "Severe", level: 4, color: "text-orange-400" },
-                { name: "Moderate", level: 3, color: "text-yellow-400" },
-                { name: "Minor", level: 2, color: "text-green-400" },
+                {
+                  name: "Extreme" as AlertSeverity,
+                  level: 5,
+                  color: "text-red-400",
+                },
+                {
+                  name: "Severe" as AlertSeverity,
+                  level: 4,
+                  color: "text-orange-400",
+                },
+                {
+                  name: "Moderate" as AlertSeverity,
+                  level: 3,
+                  color: "text-yellow-400",
+                },
+                {
+                  name: "Minor" as AlertSeverity,
+                  level: 2,
+                  color: "text-green-400",
+                },
+                {
+                  name: "Unknown" as AlertSeverity,
+                  level: 1,
+                  color: "text-gray-400",
+                },
               ].map((severity) => (
                 <label
                   key={severity.name}
@@ -134,7 +347,8 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({
                   <input
                     type="checkbox"
                     className="filter-checkbox"
-                    defaultChecked
+                    checked={selectedSeverities.includes(severity.name)}
+                    onChange={() => handleSeverityToggle(severity.name)}
                   />
                   <span className={`text-sm font-bold ${severity.color}`}>
                     {severity.level}
@@ -167,23 +381,32 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({
             </div>
             <div className="space-y-1">
               {[
-                "Weather",
-                "Geological",
-                "Security",
-                "Health",
-                "Environmental",
-                "Infrastructure",
+                { display: "Weather", value: "Met" as AlertCategory },
+                { display: "Geological", value: "Geo" as AlertCategory },
+                { display: "Security", value: "Security" as AlertCategory },
+                { display: "Health", value: "Health" as AlertCategory },
+                { display: "Environmental", value: "Env" as AlertCategory },
+                { display: "Infrastructure", value: "Infra" as AlertCategory },
+                { display: "Safety", value: "Safety" as AlertCategory },
+                { display: "Rescue", value: "Rescue" as AlertCategory },
+                { display: "Fire", value: "Fire" as AlertCategory },
+                { display: "Transport", value: "Transport" as AlertCategory },
+                { display: "CBRNE", value: "CBRNE" as AlertCategory },
+                { display: "Other", value: "Other" as AlertCategory },
               ].map((category) => (
                 <label
-                  key={category}
+                  key={category.value}
                   className="flex items-center gap-2 p-2 rounded-lg hover:bg-rich-black hover:bg-opacity-30 cursor-pointer"
                 >
                   <input
                     type="checkbox"
                     className="filter-checkbox"
-                    defaultChecked
+                    checked={selectedCategories.includes(category.value)}
+                    onChange={() => handleCategoryToggle(category.value)}
                   />
-                  <span className="text-xs text-gray-300">{category}</span>
+                  <span className="text-xs text-gray-300">
+                    {category.display}
+                  </span>
                 </label>
               ))}
             </div>
@@ -210,10 +433,16 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({
               </span>
             </div>
             <div className="flex gap-2">
-              <button className="flex-1 px-3 py-1.5 text-xs bg-bangladesh-green hover:bg-mountain-meadow text-white hover:text-dark-green rounded-md transition-colors font-medium">
+              <button
+                onClick={handleApplyFilters}
+                className="flex-1 px-3 py-1.5 text-xs bg-bangladesh-green hover:bg-mountain-meadow text-white hover:text-dark-green rounded-md transition-colors font-medium"
+              >
                 Apply Filters
               </button>
-              <button className="flex-1 px-3 py-1.5 text-xs border border-stone text-stone hover:bg-stone hover:text-dark-green rounded-md transition-colors font-medium">
+              <button
+                onClick={handleResetAll}
+                className="flex-1 px-3 py-1.5 text-xs border border-stone text-stone hover:bg-stone hover:text-dark-green rounded-md transition-colors font-medium"
+              >
                 Reset All
               </button>
             </div>

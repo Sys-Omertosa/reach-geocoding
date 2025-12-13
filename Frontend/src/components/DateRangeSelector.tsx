@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { format, isValid, parseISO } from "date-fns";
 
 export interface DateRangeSelectorProps {
@@ -20,6 +20,14 @@ export const DateRangeSelector: React.FC<DateRangeSelectorProps> = ({
   const [endDate, setEndDate] = useState<string>(
     initialEndDate ? format(initialEndDate, "yyyy-MM-dd") : ""
   );
+
+  // Update local state when initial dates change
+  useEffect(() => {
+    setStartDate(
+      initialStartDate ? format(initialStartDate, "yyyy-MM-dd") : ""
+    );
+    setEndDate(initialEndDate ? format(initialEndDate, "yyyy-MM-dd") : "");
+  }, [initialStartDate, initialEndDate]);
 
   const handleDateChange = (newStartDate: string, newEndDate: string) => {
     const parsedStartDate = newStartDate ? parseISO(newStartDate) : null;

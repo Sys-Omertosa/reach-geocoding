@@ -1,10 +1,16 @@
-import React, { useState, useRef, useMemo, useCallback } from "react";
+import React, {
+  useState,
+  useRef,
+  useMemo,
+  useCallback,
+  useEffect,
+} from "react";
 import { MapComponent, type MapRef } from "./components/MapComponent";
 import { Navbar } from "./components/Navbar";
 import { FilterPanel } from "./components/FilterPanel";
 import { RecentAlertsPanel } from "./components/RecentAlertsPanel";
 import { DetailCard, type DetailData } from "./components/DetailCard";
-import { SettingsPanel } from "./components/SettingsPanel";
+import { SettingsPanel, type UserSettings } from "./components/SettingsPanel";
 import { useAlerts } from "./hooks/useAlerts";
 import type { AlertWithLocation } from "./types/database";
 
@@ -142,15 +148,58 @@ export const App: React.FC = () => {
     startDate?: Date;
     endDate?: Date;
   }>({});
+  const [severityFilters, setSeverityFilters] = useState<string[]>([]);
+  const [categoryFilters, setCategoryFilters] = useState<string[]>([]);
+  const [userSettings, setUserSettings] = useState<UserSettings | null>(null);
+  const [mapTheme, setMapTheme] = useState<string>("custom");
+  const [showPolygons, setShowPolygons] = useState<boolean>(true);
+  const [settingsLoaded, setSettingsLoaded] = useState(false);
+  const [filtersInitialized, setFiltersInitialized] = useState(false);
   const mapRef = useRef<MapRef>(null);
+  const autoRefreshInterval = useRef<number | null>(null);
+
+  // Load user settings from localStorage on mount
+  useEffect(() => {
+    const loadUserSettings = async () => {
+      try {
+        const {
+          data: { session },
+        } = await import("./lib/supabase").then((m) =>
+          m.supabase.auth.getSession()
+        );
+        if (session?.user?.email) {
+          const storageKey = `reach_settings_${session.user.email}`;
+          const savedSettings = localStorage.getItem(storageKey);
+          if (savedSettings) {
+            const settings = JSON.parse(savedSettings);
+            setUserSettings(settings);
+            setMapTheme(settings.mapTheme || "custom");
+            setShowPolygons(settings.showPolygons ?? true);
+          }
+        }
+      } catch (error) {
+        console.error("Failed to load user settings:", error);
+      } finally {
+        setSettingsLoaded(true);
+      }
+    };
+    loadUserSettings();
+  }, []);
 
   // Use the Supabase alerts hook with filters
   const alertsFilters = useMemo(
     () => ({
       startDate: dateFilters.startDate,
       endDate: dateFilters.endDate,
+      ...(severityFilters.length > 0 ? { severities: severityFilters } : {}),
+      ...(categoryFilters.length > 0 ? { categories: categoryFilters } : {}),
     }),
-    [dateFilters.startDate, dateFilters.endDate]
+    [
+      dateFilters.startDate,
+      dateFilters.endDate,
+      severityFilters,
+      categoryFilters,
+    ]
   );
 
   const {
@@ -160,7 +209,7 @@ export const App: React.FC = () => {
     refetch,
   } = useAlerts({
     filters: alertsFilters,
-    autoFetch: true,
+    autoFetch: settingsLoaded && filtersInitialized,
   });
 
   // Transform Supabase alerts to DetailData format
@@ -185,50 +234,25 @@ export const App: React.FC = () => {
   };
 
   const handleMapClick = (coordinates: [number, number], event: any) => {
-    // Don't create a new alert if one is already selected
-    // This allows users to interact with the map while viewing alert details
-    if (isDetailCardVisible) {
-      return;
-    }
-
-    // Check if click was on a marker (markers have .mapboxgl-marker class)
-    const target = event.originalEvent?.target;
-    if (
-      target &&
-      (target.closest(".mapboxgl-marker") || target.closest(".mapboxgl-popup"))
-    ) {
-      return; // Don't handle map click if clicking on marker or popup
-    }
-
-    // Only create a sample alert if no alert is currently selected
-    const sampleAlert: DetailData = {
-      id: "clicked-location",
-      title: "Selected Location",
-      description: `You clicked at coordinates: ${coordinates[1].toFixed(
-        4
-      )}, ${coordinates[0].toFixed(4)}`,
-      location: `Lat: ${coordinates[1].toFixed(
-        4
-      )}, Lng: ${coordinates[0].toFixed(4)}`,
-      date: new Date(),
-      category: "Info",
-      severity: "Unknown",
-      urgency: "Unknown",
-      instruction: "This is a sample alert for the clicked location.",
-      source: "User Input",
-    };
-
-    setSelectedAlert(sampleAlert);
-    setIsDetailCardVisible(true);
+    // Map clicks are now only used for marker interactions
+    // No action needed for regular map clicks
   };
 
   const handleDateRangeChange = useCallback(
     (startDate: Date | null, endDate: Date | null) => {
-      console.log("Date range changed:", startDate, endDate);
       setDateFilters({
         startDate: startDate || undefined,
         endDate: endDate || undefined,
       });
+    },
+    []
+  );
+
+  const handleFiltersChange = useCallback(
+    (filters: { severities: string[]; categories: string[] }) => {
+      setSeverityFilters(filters.severities);
+      setCategoryFilters(filters.categories);
+      setFiltersInitialized(true);
     },
     []
   );
@@ -240,14 +264,11 @@ export const App: React.FC = () => {
     // Fly to location and highlight polygon on map
     if (alert.additionalInfo?.coordinates && mapRef.current) {
       const [lng, lat] = alert.additionalInfo.coordinates;
-      mapRef.current.flyTo([lng, lat], 10);
+      mapRef.current.flyTo([lng, lat], 7);
 
       // Highlight the polygon if geometry data is available
       if (alert.additionalInfo?.polygon) {
-        console.log("Highlighting polygon for:", alert.location);
         mapRef.current.highlightPolygon(alert.additionalInfo.polygon);
-      } else {
-        console.warn("No polygon data available for this alert");
       }
     }
   };
@@ -285,9 +306,45 @@ export const App: React.FC = () => {
   };
 
   const refreshAlerts = useCallback(() => {
-    console.log("Refreshing alerts...");
     refetch();
   }, [refetch]);
+
+  // Handle settings changes
+  const handleSettingsChange = useCallback(
+    (settings: UserSettings) => {
+      setUserSettings(settings);
+      setMapTheme(settings.mapTheme);
+      setShowPolygons(settings.showPolygons);
+
+      // Update auto-refresh based on settings
+      if (settings.autoRefresh) {
+        // Set up auto-refresh every 5 minutes
+        if (autoRefreshInterval.current) {
+          clearInterval(autoRefreshInterval.current);
+        }
+        autoRefreshInterval.current = setInterval(() => {
+          console.log("Auto-refreshing alerts...");
+          refetch();
+        }, 5 * 60 * 1000); // 5 minutes
+      } else {
+        // Clear auto-refresh
+        if (autoRefreshInterval.current) {
+          clearInterval(autoRefreshInterval.current);
+          autoRefreshInterval.current = null;
+        }
+      }
+    },
+    [refetch]
+  );
+
+  // Clean up auto-refresh on unmount
+  useEffect(() => {
+    return () => {
+      if (autoRefreshInterval.current) {
+        clearInterval(autoRefreshInterval.current);
+      }
+    };
+  }, []);
 
   // Prepare markers for map
   const mapMarkers = currentAlerts
@@ -336,7 +393,7 @@ export const App: React.FC = () => {
   const handleToggleSettings = () => {
     const newVisibility = !isSettingsPanelVisible;
     setIsSettingsPanelVisible(newVisibility);
-    
+
     if (newVisibility) {
       // Close other panels when settings is opened
       setIsFilterPanelVisible(false);
@@ -353,8 +410,9 @@ export const App: React.FC = () => {
           ref={mapRef}
           accessToken={MAPBOX_TOKEN}
           center={[69.3451, 30.3753]}
+          theme={mapTheme}
+          showPolygons={showPolygons}
           // zoom={6}
-          onMapClick={handleMapClick}
           markers={mapMarkers}
           className="w-full h-full"
         />
@@ -377,6 +435,10 @@ export const App: React.FC = () => {
         isVisible={isFilterPanelVisible}
         onClose={() => setIsFilterPanelVisible(false)}
         onDateRangeChange={handleDateRangeChange}
+        onFiltersChange={handleFiltersChange}
+        defaultSeverity={userSettings?.minSeverity}
+        defaultTimeRange={userSettings?.defaultTimeRange}
+        isLoading={!settingsLoaded}
       />
 
       {/* Recent Alerts Panel (Bottom Left - Full Width) */}
@@ -402,6 +464,7 @@ export const App: React.FC = () => {
       <SettingsPanel
         isVisible={isSettingsPanelVisible}
         onClose={() => setIsSettingsPanelVisible(false)}
+        onSettingsChange={handleSettingsChange}
       />
     </div>
   );

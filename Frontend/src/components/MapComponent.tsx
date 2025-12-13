@@ -6,6 +6,8 @@ export interface MapProps {
   accessToken: string;
   center?: [number, number];
   zoom?: number;
+  theme?: string;
+  showPolygons?: boolean;
   onMapClick?: (
     coordinates: [number, number],
     event: mapboxgl.MapMouseEvent
@@ -31,6 +33,8 @@ export const MapComponent = forwardRef<MapRef, MapProps>(
       accessToken,
       center = [69.3451, 30.3753], // Default to Pakistan center
       zoom = 3,
+      theme = "custom",
+      showPolygons = true,
       onMapClick,
       markers = [],
       className = "w-full h-full",
@@ -48,11 +52,16 @@ export const MapComponent = forwardRef<MapRef, MapProps>(
       // Set the access token
       mapboxgl.accessToken = accessToken;
 
+      // Determine map style based on theme
+      const mapStyle =
+        theme === "dark-v11"
+          ? "mapbox://styles/mapbox/dark-v11"
+          : (customStyle as any);
+
       // Create the map
       map.current = new mapboxgl.Map({
         container: mapContainer.current,
-        // style: "mapbox://styles/mapbox/dark-v11",
-        style: customStyle as any,
+        style: mapStyle,
         center: center,
         zoom: zoom,
         preserveDrawingBuffer: true, // Help prevent context loss
@@ -105,6 +114,18 @@ export const MapComponent = forwardRef<MapRef, MapProps>(
       };
     }, [accessToken]); // Only depend on accessToken to minimize re-initialization
 
+    // Handle theme changes
+    useEffect(() => {
+      if (!map.current) return;
+
+      const mapStyle =
+        theme === "dark-v11"
+          ? "mapbox://styles/mapbox/dark-v11"
+          : (customStyle as any);
+
+      map.current.setStyle(mapStyle);
+    }, [theme]);
+
     // Update markers when markers prop changes
     useEffect(() => {
       if (!map.current) return;
@@ -115,7 +136,47 @@ export const MapComponent = forwardRef<MapRef, MapProps>(
 
       // Add new markers
       markers.forEach(({ coordinates, popupContent, onClick }) => {
-        const marker = new mapboxgl.Marker()
+        // Create custom marker element with glassmorphic design
+        const el = document.createElement("div");
+        el.className = "custom-marker";
+        el.innerHTML = `
+          <div style="position: relative; width: 28px; height: 28px;">
+            <div style="position: absolute; width: 28px; height: 28px; background: rgba(242, 100, 48, 0.6); border-radius: 50%; animation: pulse 2s ease-out infinite;"></div>
+            <div style="
+              position: absolute; 
+              width: 20px; 
+              height: 20px; 
+              top: 4px; 
+              left: 4px; 
+              background: rgba(242, 100, 48, 0.8);
+              backdrop-filter: blur(10px);
+              -webkit-backdrop-filter: blur(10px);
+              border: 2px solid rgba(255, 255, 255, 0.4);
+              border-radius: 50%;
+              box-shadow: 
+                0 4px 12px rgba(242, 100, 48, 0.4),
+                inset 0 1px 2px rgba(255, 255, 255, 0.3),
+                0 1px 3px rgba(0, 0, 0, 0.2);
+            "></div>
+          </div>
+        `;
+        el.style.cursor = "pointer";
+
+        // Add pulse animation
+        const style = document.createElement("style");
+        style.textContent = `
+          @keyframes pulse {
+            0% { transform: scale(1); opacity: 0.5; }
+            50% { transform: scale(1.5); opacity: 0.2; }
+            100% { transform: scale(2); opacity: 0; }
+          }
+        `;
+        if (!document.head.querySelector("style[data-marker-pulse]")) {
+          style.setAttribute("data-marker-pulse", "true");
+          document.head.appendChild(style);
+        }
+
+        const marker = new mapboxgl.Marker({ element: el, anchor: "center" })
           .setLngLat(coordinates)
           .addTo(map.current!);
 
@@ -127,7 +188,7 @@ export const MapComponent = forwardRef<MapRef, MapProps>(
         }
 
         if (onClick) {
-          marker.getElement().addEventListener("click", (e) => {
+          el.addEventListener("click", (e) => {
             e.stopPropagation(); // Prevent map click event
             onClick();
           });
@@ -200,6 +261,12 @@ export const MapComponent = forwardRef<MapRef, MapProps>(
     const highlightPolygon = (geometry: any) => {
       if (!map.current) {
         console.warn("Map not available for highlighting");
+        return;
+      }
+
+      // Don't show polygons if setting is disabled
+      if (!showPolygons) {
+        console.log("Polygon display is disabled in settings");
         return;
       }
 

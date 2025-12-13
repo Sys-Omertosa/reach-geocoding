@@ -15,3 +15,5 @@ Prototype/fake_data
 Frontend/env
 __pycache__/
 Prototype/
+.vscode/
+.vscode

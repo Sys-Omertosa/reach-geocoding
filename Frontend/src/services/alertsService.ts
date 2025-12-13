@@ -11,7 +11,9 @@ export interface AlertsFilters {
   startDate?: Date;
   endDate?: Date;
   category?: AlertCategory;
+  categories?: string[];
   severity?: AlertSeverity;
+  severities?: string[];
   urgency?: AlertUrgency;
   source?: string;
 }
@@ -49,26 +51,43 @@ class AlertsService {
 
       // Apply filters
       if (filters?.startDate) {
-        query = query.gte("effective_from", filters.startDate.toISOString());
+        console.log("Applying startDate filter:", filters.startDate);
+        query = query.gte("effective_until", filters.startDate.toISOString());
       }
 
       if (filters?.endDate) {
-        query = query.lte("effective_until", filters.endDate.toISOString());
+        console.log("Applying endDate filter:", filters.endDate);
+        query = query.lte("effective_from", filters.endDate.toISOString());
       }
 
       if (filters?.category) {
+        console.log("Applying category filter:", filters.category);
         query = query.eq("category", filters.category);
       }
 
+      if (filters?.categories && filters.categories.length > 0) {
+        console.log("Applying categories filter:", filters.categories);
+        query = query.in("category", filters.categories);
+      }
+
       if (filters?.severity) {
+        console.log("Applying severity filter:", filters.severity);
         query = query.eq("severity", filters.severity);
       }
 
+      if (filters?.severities && filters.severities.length > 0) {
+        console.log("Applying severities filter:", filters.severities);
+        query = query.in("severity", filters.severities);
+      }
+
       if (filters?.urgency) {
+        console.log("Applying urgency filter:", filters.urgency);
         query = query.eq("urgency", filters.urgency);
       }
 
+      console.log("Executing query with filters:", filters);
       const { data, error } = await query;
+      console.log("Query result - data count:", data?.length, "error:", error);
 
       if (error) {
         console.error("Error fetching alerts:", error);

@@ -16,6 +16,7 @@ export function useAlerts(options: UseAlertsOptions = {}) {
   const [error, setError] = useState<string | null>(null);
 
   const fetchAlerts = useCallback(async () => {
+    console.log("useAlerts: Fetching alerts with filters:", filters);
     setLoading(true);
     setError(null);
 
@@ -31,6 +32,7 @@ export function useAlerts(options: UseAlertsOptions = {}) {
         setError(result.error);
         setAlerts([]);
       } else {
+        console.log("useAlerts: Fetched alerts count:", result.data?.length);
         setAlerts(result.data || []);
       }
     } catch (err) {
@@ -41,7 +43,17 @@ export function useAlerts(options: UseAlertsOptions = {}) {
     } finally {
       setLoading(false);
     }
-  }, [filters, activeOnly]);
+  }, [
+    filters?.startDate?.toISOString(),
+    filters?.endDate?.toISOString(),
+    filters?.severities?.join(','),
+    filters?.categories?.join(','),
+    filters?.severity,
+    filters?.category,
+    filters?.urgency,
+    filters?.source,
+    activeOnly
+  ]);
 
   const refetch = useCallback(() => {
     return fetchAlerts();
@@ -49,6 +61,7 @@ export function useAlerts(options: UseAlertsOptions = {}) {
 
   useEffect(() => {
     if (autoFetch) {
+      console.log("useAlerts: Auto-fetching with filters:", filters);
       fetchAlerts();
     }
   }, [fetchAlerts, autoFetch]);

@@ -115,7 +115,47 @@ export const MapComponent = forwardRef<MapRef, MapProps>(
 
       // Add new markers
       markers.forEach(({ coordinates, popupContent, onClick }) => {
-        const marker = new mapboxgl.Marker()
+        // Create custom marker element with glassmorphic design
+        const el = document.createElement("div");
+        el.className = "custom-marker";
+        el.innerHTML = `
+          <div style="position: relative; width: 28px; height: 28px;">
+            <div style="position: absolute; width: 28px; height: 28px; background: rgba(242, 100, 48, 0.6); border-radius: 50%; animation: pulse 2s ease-out infinite;"></div>
+            <div style="
+              position: absolute; 
+              width: 20px; 
+              height: 20px; 
+              top: 4px; 
+              left: 4px; 
+              background: rgba(242, 100, 48, 0.8);
+              backdrop-filter: blur(10px);
+              -webkit-backdrop-filter: blur(10px);
+              border: 2px solid rgba(255, 255, 255, 0.4);
+              border-radius: 50%;
+              box-shadow: 
+                0 4px 12px rgba(242, 100, 48, 0.4),
+                inset 0 1px 2px rgba(255, 255, 255, 0.3),
+                0 1px 3px rgba(0, 0, 0, 0.2);
+            "></div>
+          </div>
+        `;
+        el.style.cursor = "pointer";
+
+        // Add pulse animation
+        const style = document.createElement("style");
+        style.textContent = `
+          @keyframes pulse {
+            0% { transform: scale(1); opacity: 0.5; }
+            50% { transform: scale(1.5); opacity: 0.2; }
+            100% { transform: scale(2); opacity: 0; }
+          }
+        `;
+        if (!document.head.querySelector("style[data-marker-pulse]")) {
+          style.setAttribute("data-marker-pulse", "true");
+          document.head.appendChild(style);
+        }
+
+        const marker = new mapboxgl.Marker({ element: el, anchor: "center" })
           .setLngLat(coordinates)
           .addTo(map.current!);
 
@@ -127,7 +167,7 @@ export const MapComponent = forwardRef<MapRef, MapProps>(
         }
 
         if (onClick) {
-          marker.getElement().addEventListener("click", (e) => {
+          el.addEventListener("click", (e) => {
             e.stopPropagation(); // Prevent map click event
             onClick();
           });

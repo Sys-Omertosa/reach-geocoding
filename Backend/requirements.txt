@@ -6,3 +6,7 @@ python-dotenv
 beautifulsoup4
 pandas
 openai
+modal
+PyMuPDF
+pypdf
+pillow

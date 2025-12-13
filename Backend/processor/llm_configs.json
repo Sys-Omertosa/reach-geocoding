@@ -1,15 +1,16 @@
 {
     "ernie-4.5-vl": {
-        "model": "ernie-4.5-vl-28b-a3b-thinking",
+        "model": "ernie-4.5-turbo-vl",
         "api_key_name": "BAIDU_KEY",
         "base_url": "https://aistudio.baidu.com/llm/lmapi/v3",
         "default_params": {
-            "extra_body": {
-                "penalty_score": 1
-            },
-            "max_completion_tokens": 128000,
-            "temperature":0.6,
-            "top_p": 0.95,
+            "extra_body":{
+                "penalty_score": 1,
+                "enable_thinking": false
+    },
+            "max_completion_tokens": 8000,
+            "temperature":0.2,
+            "top_p": 0.8,
             "frequency_penalty": 0,
             "presence_penalty": 0
         }
@@ -20,7 +21,7 @@
         "base_url": "https://aistudio.baidu.com/llm/lmapi/v3",
         "default_params": {
             "web_search": {
-                "enable": "True"
+                "enable": true
             },
             "max_completion_tokens": 65536,
             "response_format": {

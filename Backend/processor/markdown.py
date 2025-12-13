@@ -69,7 +69,7 @@ async def to_markdown(url: str) -> str:
 
     print(f"Processing: {url}")
     for i, image in enumerate(images):
-        print(f"Processing page {i}")
+        print(f"Processing page {i+1}")
 
         base64_image = to_base64(image)
         messages = md_messages(base64_image)
@@ -79,6 +79,8 @@ async def to_markdown(url: str) -> str:
     end = time.time()
     time_taken = f"{end-start: .2f}s"
     final_markdown = "".join(markdown_parts)
+    print(time_taken)
+    print(final_markdown)
     return {
         "markdown": final_markdown,
         "time": time_taken

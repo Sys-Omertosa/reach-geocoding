@@ -1,39 +1,17 @@
 import os
 from openai import OpenAI
+from pathlib import Path
 from utils import load_env
+import json
 
+# Load env into the system
 load_env()
-configs = {
-    "ernie-4.5-vl": {
-        "model": "ernie-4.5-vl-28b-a3b-thinking",
-        "api_key_name": "BAIDU_KEY",
-        "base_url": "https://aistudio.baidu.com/llm/lmapi/v3",
-        "default_params": {
-            "extra_body": {
-                "penalty_score": 1
-            },
-            "max_completion_tokens": 128000,
-            "temperature": 0.6,
-            "top_p": 0.95,
-            "frequency_penalty": 0,
-            "presence_penalty": 0
-        }
-    },
-    "ernie-x1": {
-        "model": "ernie-x1.1-preview",
-        "api_key_name": "BAIDU_KEY",
-        "base_url": "https://aistudio.baidu.com/llm/lmapi/v3",
-        "default_params": {
-            "web_search": {
-                "enable": "True"
-            },
-            "max_completion_tokens": 65536,
-            "response_format": {
-                "type": "json_object"
-            }
-        }
-    }
-}
+
+# Load config file
+CURRENT_DIR = Path(__file__).parent
+config_path = CURRENT_DIR / "llm_configs.json"
+with open(config_path, 'r') as f:
+    configs = json.load(f)
 
 # Unified LLM client with abstraction, based on Openai
 class LLMClient:

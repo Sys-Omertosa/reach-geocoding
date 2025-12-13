@@ -8,5 +8,4 @@ pandas
 openai
 modal
 PyMuPDF
-pypdf
 pillow

@@ -15,7 +15,6 @@ export type { UserSettings };
 interface UserSettings {
   emailAlerts: boolean;
   pushNotifications: boolean;
-  weeklyDigest: boolean;
   autoRefresh: boolean;
   showPolygons: boolean;
   mapTheme: string;
@@ -24,9 +23,8 @@ interface UserSettings {
 }
 
 const DEFAULT_SETTINGS: UserSettings = {
-  emailAlerts: true,
-  pushNotifications: true,
-  weeklyDigest: false,
+  emailAlerts: false,
+  pushNotifications: false,
   autoRefresh: true,
   showPolygons: true,
   mapTheme: "custom",
@@ -96,6 +94,42 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({
     key: K,
     value: UserSettings[K]
   ) => {
+    // Intercept push notifications to request permission
+    if (key === "pushNotifications" && value === true) {
+      if (!("Notification" in window)) {
+        alert("This browser does not support desktop notification");
+        return;
+      }
+
+      if (Notification.permission !== "granted") {
+        Notification.requestPermission().then((permission) => {
+          if (permission === "granted") {
+            const newSettings = { ...settings, [key]: true };
+            saveSettings(newSettings);
+            new Notification("Notifications Enabled", {
+              body: "You will now receive alerts from Reach.",
+            });
+          } else {
+            const newSettings = { ...settings, [key]: false };
+            saveSettings(newSettings);
+            alert(
+              "Permission denied. Please enable notifications in your browser settings."
+            );
+          }
+        });
+        return;
+      }
+    }
+
+    // Intercept email alerts to show confirmation
+    if (key === "emailAlerts") {
+      if (value === true) {
+        alert(`Email alerts enabled for ${session?.user?.email}`);
+      } else {
+        alert(`Email alerts disabled for ${session?.user?.email}`);
+      }
+    }
+
     const newSettings = { ...settings, [key]: value };
     saveSettings(newSettings);
   };
@@ -272,17 +306,6 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({
                       checked={settings.pushNotifications}
                       onChange={(e) =>
                         updateSetting("pushNotifications", e.target.checked)
-                      }
-                    />
-                  </label>
-                  <label className="flex items-center justify-between cursor-pointer hover:bg-rich-black/30 p-2 rounded">
-                    <span className="text-sm text-gray-300">Weekly Digest</span>
-                    <input
-                      type="checkbox"
-                      className="filter-checkbox"
-                      checked={settings.weeklyDigest}
-                      onChange={(e) =>
-                        updateSetting("weeklyDigest", e.target.checked)
                       }
                     />
                   </label>

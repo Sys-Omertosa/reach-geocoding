@@ -6,7 +6,6 @@ venv/
 *.zip
 Prototype/Shapefiles
 Prototype/REACH Prototype.sql
-other.env
 .env
 *.env
 *.sql

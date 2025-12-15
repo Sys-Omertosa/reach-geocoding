@@ -9,7 +9,7 @@ async def to_markdown(url: str) -> str:
     start = time.time()
     file = await fetch_file(url)
     images = stream_to_images(file)
-    llm = LLMClient("ernie-4.5-vl")
+    llm = LLMClient("ernie-4.5-vl:baidu")
     markdown_parts = []
     for i, image in enumerate(images):
         base64_image = to_base64(image)

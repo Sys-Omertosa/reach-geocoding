@@ -5,7 +5,7 @@ from processing_engine.doc_utils import to_base64
 CURRENT_DIR = Path(__file__).parent
 markdown_prompt = """Extract all text as-is from this image in markdown format. 
 Preserve the structure, headings, lists, tables, diagrams and formatting as much as possible. 
-Return only the English markdown without any preamble. Format tables as markdown or html.
+Return only the English markdown without any preamble. Ignore non-English text. Format tables as markdown or html.
 Wrap contents from inside a diagram in "<!-- Diagram -->" comments before and after the diagram content.
 """
 

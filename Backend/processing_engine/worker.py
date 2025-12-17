@@ -9,8 +9,8 @@ class QueueWorker:
     def __init__(self, supabase):
         self.logger = logging.getLogger(__name__)
         self.db = supabase
-        self.doc_processor = DocumentProcessor
-        self.alert_processor = AlertProcessor
+        self.doc_processor = DocumentProcessor("ernie-4.5-vl-thinking:baidu")
+        self.alert_processor = AlertProcessor("ernie-x1:baidu")
     
     async def process_job(self, job: QueueJob):
         try:
@@ -26,5 +26,6 @@ class QueueWorker:
             return False
         
     async def upsert(self, alert: AlertData, alert_areas: AlertArea):
-        """Upsert new alerts to queue"""
-        response = self.db.table("alerts").upsert(alert, on_conflict='document_id').execute()
+        """Upsert new alerts to table"""
+        self.db.table("alerts").upsert(alert, on_conflict='document_id').execute()
+

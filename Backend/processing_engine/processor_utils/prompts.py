@@ -1,15 +1,14 @@
 from PIL import Image
 from pathlib import Path
-from processing_engine.utils.doc_utils import to_base64
+from processing_engine.processor_utils.doc_utils import to_base64
 
 CURRENT_DIR = Path(__file__).parent
 markdown_prompt = """Extract all text as-is from this image in markdown format. 
 Preserve the structure, headings, lists, tables, diagrams and formatting as much as possible. 
-Return only the English markdown without any preamble. Ignore non-English text. Format tables as markdown or html.
+Return only the English markdown without any preamble. Ignore Urdu text. Format tables as markdown or html.
 Wrap contents from inside a diagram in "<!-- Diagram -->" comments before and after the diagram content.
 """
 
-# Pre-load example images at module initialization
 EXAMPLE_IMAGES = {
     "9PPqpSasTb07UWPKiyXV": to_base64(Image.open(CURRENT_DIR / "examples/9PPqpSasTb07UWPKiyXV.jpg")),
     "cX5UVWicUxYs0Ub9642D": to_base64(Image.open(CURRENT_DIR / "examples/cX5UVWicUxYs0Ub9642D.jpg")),

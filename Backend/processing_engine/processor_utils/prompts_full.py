@@ -1,6 +1,6 @@
 from PIL import Image
 from pathlib import Path
-from processing_engine.utils.doc_utils import to_base64
+from processing_engine.processor_utils.doc_utils import to_base64
 
 CURRENT_DIR = Path(__file__).parent
 markdown_prompt = """Extract all text from this image in markdown format. 

@@ -1,19 +1,27 @@
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, HttpUrl
 from typing import Optional, List, Literal
-from uuid import UUID, uuid4
+from uuid import UUID
 from datetime import datetime
 from enum import Enum
 
-class QueueJob(BaseModel):    
-    """Incoming job from Supabase queue"""
-    document_id: str
-    posted_date: datetime
-    url: str
+class DocumentPayload(BaseModel):
+    """Schema for the message payload/content"""
+    url: HttpUrl
     title: str
     source: Literal["NDMA", "NEOC", "PMD"]
     filename: Optional[str]
     filetype: Literal["pdf", "pptx", "txt", "gif", "png", "jpeg"]
     raw_text: Optional[str] = None
+    document_id: UUID
+    posted_date: str
+
+class QueueJob(BaseModel):
+    """Complete schema for a PGMQ queue job"""
+    msg_id: int
+    read_ct: int
+    enqueued_at: datetime
+    vt: datetime
+    message: DocumentPayload
 
 class ExtractedContent(BaseModel):
     """Output from document processor"""

@@ -53,7 +53,7 @@ class AlertSeverity(str, Enum):
     MINOR = "Minor"
     UNKNOWN = "Unknown"
 
-#LLM Response
+#LLM structured response
 class Arealist(BaseModel):
     """Represents a specific area affected by the alert."""
     place_names: List[str]

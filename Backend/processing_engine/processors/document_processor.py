@@ -1,17 +1,19 @@
 from PIL import Image 
 from typing import List
 import io
+import time
+import sys
+import asyncio
 
 from processing_engine.processor_utils.llm_client import LLMClient
 from processing_engine.processor_utils.prompts import markdown_messages
 from processing_engine.processor_utils.doc_utils import fetch_file, pdf_to_images, to_base64
 from processing_engine.models.schemas import QueueJob, ExtractedContent
 
-"""
 async def to_markdown(url: str) -> str:
     start = time.time()
     file = await fetch_file(url)
-    images = stream_to_images(file)
+    images = pdf_to_images(file)
     llm = LLMClient("ernie-4.5-vl:baidu")
     markdown_parts = []
     for i, image in enumerate(images):
@@ -29,7 +31,7 @@ async def to_markdown(url: str) -> str:
         "markdown": final_markdown,
         "time": time_taken
     }
-"""
+
 
 class DocumentProcessor:
     def __init__(self, llm:str):
@@ -80,11 +82,11 @@ class DocumentProcessor:
             markdown_parts.append(f"<!-- Page {i + 1} -->\n{markdown}\n\n")
         
         return "".join(markdown_parts)
-"""
+    
+
 if __name__ == "__main__":
     if len(sys.argv) < 2:
         print("Usage: python -m processor.markdown <pdf_url>")
         sys.exit(1)
     pdf_url = sys.argv[1]
     asyncio.run(to_markdown(pdf_url))
-"""    

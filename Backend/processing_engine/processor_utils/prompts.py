@@ -2,7 +2,7 @@ from PIL import Image
 from pathlib import Path
 from processing_engine.processor_utils.doc_utils import to_base64
 
-CURRENT_DIR = Path(__file__).parent
+PARENT_DIR = Path(__file__).parent.parent
 markdown_prompt = """Extract all text as-is from this image in markdown format. 
 Preserve the structure, headings, lists, tables, diagrams and formatting as much as possible. 
 Return only the English markdown without any preamble. Ignore Urdu text. Format tables as markdown or html.
@@ -10,13 +10,13 @@ Wrap contents from inside a diagram in "<!-- Diagram -->" comments before and af
 """
 
 EXAMPLE_IMAGES = {
-    "9PPqpSasTb07UWPKiyXV": to_base64(Image.open(CURRENT_DIR / "examples/9PPqpSasTb07UWPKiyXV.jpg")),
-    "cX5UVWicUxYs0Ub9642D": to_base64(Image.open(CURRENT_DIR / "examples/cX5UVWicUxYs0Ub9642D.jpg")),
-    "evgtuouxcEBpD4FSxL9w": to_base64(Image.open(CURRENT_DIR / "examples/evgtuouxcEBpD4FSxL9w.jpg")),
-    "InXkmGJqQbCXx7aRyjXA": to_base64(Image.open(CURRENT_DIR / "examples/InXkmGJqQbCXx7aRyjXA.jpg")),
-    "K6y19XCyAM7nXz8wVUyL": to_base64(Image.open(CURRENT_DIR / "examples/K6y19XCyAM7nXz8wVUyL.jpg")),
-    "UUMqxsp0XrFeQmUWc1Xo": to_base64(Image.open(CURRENT_DIR / "examples/UUMqxsp0XrFeQmUWc1Xo.jpg")),
-    "WMpJfGUze00GwXezWekr": to_base64(Image.open(CURRENT_DIR / "examples/WMpJfGUze00GwXezWekr.jpg")),
+    "9PPqpSasTb07UWPKiyXV": to_base64(Image.open(PARENT_DIR / "examples/9PPqpSasTb07UWPKiyXV.jpg")),
+    "cX5UVWicUxYs0Ub9642D": to_base64(Image.open(PARENT_DIR / "examples/cX5UVWicUxYs0Ub9642D.jpg")),
+    "evgtuouxcEBpD4FSxL9w": to_base64(Image.open(PARENT_DIR / "examples/evgtuouxcEBpD4FSxL9w.jpg")),
+    "InXkmGJqQbCXx7aRyjXA": to_base64(Image.open(PARENT_DIR / "examples/InXkmGJqQbCXx7aRyjXA.jpg")),
+    "K6y19XCyAM7nXz8wVUyL": to_base64(Image.open(PARENT_DIR / "examples/K6y19XCyAM7nXz8wVUyL.jpg")),
+    "UUMqxsp0XrFeQmUWc1Xo": to_base64(Image.open(PARENT_DIR / "examples/UUMqxsp0XrFeQmUWc1Xo.jpg")),
+    "WMpJfGUze00GwXezWekr": to_base64(Image.open(PARENT_DIR / "examples/WMpJfGUze00GwXezWekr.jpg")),
 }
 
 def markdown_messages(base64_image):

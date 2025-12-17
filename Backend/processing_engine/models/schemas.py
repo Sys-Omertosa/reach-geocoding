@@ -62,7 +62,7 @@ class AlertSeverity(str, Enum):
     UNKNOWN = "Unknown"
 
 #LLM structured response
-class Arealist(BaseModel):
+class AreaList(BaseModel):
     """Represents a specific area affected by the alert."""
     place_names: List[str]
     specific_effective_from: Optional[datetime] = None
@@ -81,7 +81,7 @@ class StructuredAlert(BaseModel):
     instruction: str
     effective_from: datetime
     effective_until: datetime
-    areas: List[Arealist]
+    areas: List[AreaList]
 
 # For insertion into DB
 class AlertArea(BaseModel):

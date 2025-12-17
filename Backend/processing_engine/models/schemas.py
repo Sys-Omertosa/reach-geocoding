@@ -10,7 +10,7 @@ class DocumentPayload(BaseModel):
     title: str
     source: Literal["NDMA", "NEOC", "PMD"]
     filename: Optional[str]
-    filetype: Literal["pdf", "pptx", "txt", "gif", "png", "jpeg"]
+    filetype: Literal["pdf", "pptx", "txt", "gif", "png", "jpeg", "jpg"]
     raw_text: Optional[str] = None
     document_id: UUID
     posted_date: str
@@ -25,7 +25,7 @@ class QueueJob(BaseModel):
 
 class ExtractedContent(BaseModel):
     """Output from document processor"""
-    job_id: str
+    job_id: int
     markdown: str
     extraction_method: Literal["vlm", "direct"]
     confidence_score: Optional[float] = None
@@ -86,6 +86,7 @@ class StructuredAlert(BaseModel):
 # For insertion into DB
 class AlertArea(BaseModel):
     """Represents a specific area affected by the alert."""
+    alert_id: UUID
     place_id: UUID
     specific_effective_from: Optional[datetime] = None
     specific_effective_until: Optional[datetime] = None
@@ -93,9 +94,9 @@ class AlertArea(BaseModel):
     specific_severity: Optional[AlertSeverity] = None
     specific_instruction: Optional[str] = None
 
-# Main alert data with areas
-class AlertData(BaseModel):
-    """Complete alert data that can be normalized into alerts and alert_areas tables."""
+class Alert(BaseModel):
+    """Complete alert data following a CAP inspired format"""
+    id: UUID
     document_id: UUID
     category: AlertCategory
     event: str
@@ -105,5 +106,3 @@ class AlertData(BaseModel):
     instruction: str
     effective_from: datetime
     effective_until: datetime
-    areas: List[AlertArea]
-    alert_id: Optional[UUID] = None

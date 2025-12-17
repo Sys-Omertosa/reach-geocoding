@@ -9,3 +9,7 @@ openai
 modal
 PyMuPDF
 pillow
+rapidfuzz
+geopy
+redis
+pydantic-settings

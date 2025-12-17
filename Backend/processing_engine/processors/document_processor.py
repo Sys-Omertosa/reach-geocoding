@@ -1,14 +1,11 @@
-import time
-import asyncio
-import sys
-import base64
 from PIL import Image 
 from typing import List
+import io
 
 from processing_engine.processor_utils.llm_client import LLMClient
 from processing_engine.processor_utils.prompts import markdown_messages
 from processing_engine.processor_utils.doc_utils import fetch_file, pdf_to_images, to_base64
-from processing_engine.models.schemas import QueueJob, AlertData, AlertArea, ExtractedContent
+from processing_engine.models.schemas import QueueJob, ExtractedContent
 
 """
 async def to_markdown(url: str) -> str:
@@ -44,8 +41,8 @@ class DocumentProcessor:
         if job.message.filetype == "txt":
             # Plain text - pass through
             return ExtractedContent(
-                job_id=job.message.id,
-                markdown=job.message.raw_content,
+                job_id=job.msg_id,
+                markdown=job.message.raw_text,
                 extraction_method="direct"
             )
         else:
@@ -59,22 +56,27 @@ class DocumentProcessor:
                 extraction_method="vlm"
             )
     
-    async def _prepare_images(self, job: QueueJob):
+    async def _prepare_images(self, job: QueueJob) -> List[bytes]:
         """Convert document to images (base64)""" 
         file = await fetch_file(job.message.url)
-        if job.message.filetype in ["gif", "png"]:
-            pil_image = Image.open(file)
-            return to_base64(pil_image)
+        encoded_images = []
+
+        if job.message.filetype in ["gif", "png", "jpeg", "jpg"]:
+            pil_image = Image.open(io.BytesIO(file))
+            encoded_images.append(to_base64(pil_image))
         
         elif job.message.filetype == "pdf":
             pil_images = pdf_to_images(file)
-            return to_base64(pil_images)
+            for pil_image in pil_images:
+                encoded_images.append(to_base64(pil_image))
+        
+        return encoded_images
             
-    async def _extract_with_vlm(self, images: List[base64.b64encode]) -> str:
+    async def _extract_with_vlm(self, images: List[bytes]) -> str:
         markdown_parts = []
         for i, image in enumerate(images):
-            messages = markdown_messages(image)
-            markdown = self.llm.call(messages)
+            message = markdown_messages(image)
+            markdown = self.llm.call(message)
             markdown_parts.append(f"<!-- Page {i + 1} -->\n{markdown}\n\n")
         
         return "".join(markdown_parts)
@@ -85,4 +87,4 @@ if __name__ == "__main__":
         sys.exit(1)
     pdf_url = sys.argv[1]
     asyncio.run(to_markdown(pdf_url))
-"""
+"""    

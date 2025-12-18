@@ -11,7 +11,8 @@ Wrap contents from inside a diagram in "<!-- Diagram -->" comments before and af
 
 json_prompt = """Convert this markdown extracted from a VLM from a Pakistani disaster alert/information document to CAP-inspired JSON structure.
 As this was extracted from a VLM, take the markdown structure and content with a grain of salt, and convert place names and 
-abbreviations to their full form. Convert directional descriptions to a standard form like (North, Northern, Northern parts) ->(Northern).
+abbreviations to their full form. Convert directional descriptions to a standard form like (North, Northern, Northern parts, Upper) ->(Northern).
+Convert names of roads, highways, etc. to the districts and provinces containing them.
 
 # Field Definitions:
 - **category**: Type of alert. Valid values: "Geo", "Met", "Safety", "Security", "Rescue", "Fire", "Health", "Env", "Transport", "Infra", "CBRNE", "Other"

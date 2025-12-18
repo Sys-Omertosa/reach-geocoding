@@ -63,7 +63,7 @@ class AlertSeverity(str, Enum):
 
 #LLM structured response
 class AreaList(BaseModel):
-    """Represents a specific area affected by the alert."""
+    """Represents a specific area or group if areas sharing same overrides (or none) affected by the alert."""
     place_names: List[str]
     specific_effective_from: Optional[datetime] = None
     specific_effective_until: Optional[datetime] = None

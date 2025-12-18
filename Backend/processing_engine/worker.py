@@ -9,7 +9,7 @@ class QueueWorker:
     def __init__(self, supabase):
         self.logger = logging.getLogger(__name__)
         self.db = supabase
-        self.doc_processor = DocumentProcessor("ernie-4.5-vl-thinking:baidu")
+        self.doc_processor = DocumentProcessor("ernie-4.5-vl:baidu")
         self.alert_processor = Transformer("ernie-x1:baidu")
     
     async def process_job(self, job: QueueJob):

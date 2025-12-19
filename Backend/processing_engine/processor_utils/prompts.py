@@ -12,13 +12,13 @@ Wrap contents from inside a diagram in "<!-- Diagram -->" comments before and af
 json_prompt = """Convert this markdown extracted from a VLM from a Pakistani disaster alert/information document to CAP-inspired JSON structure.
 As this was extracted from a VLM, take the markdown structure and content with a grain of salt, and convert place names and 
 abbreviations to their full form. Convert directional descriptions to a standard form like (North, Northern, Northern parts, Upper) ->(Northern).
-Convert names of roads, highways, etc. to the districts and provinces containing them.
+Convert names of roads, highways, etc. to the districts and provinces containing them. Output only English text.
 
 # Field Definitions:
-- **category**: Type of alert. Valid values: "Geo", "Met", "Safety", "Security", "Rescue", "Fire", "Health", "Env", "Transport", "Infra", "CBRNE", "Other"
+- **category**: Type of alert. The only valid values are: "Geo", "Met", "Safety", "Security", "Rescue", "Fire", "Health", "Env", "Transport", "Infra", "CBRNE", "Other"
 - **event**: Brief name of the hazard or event (e.g., "Severe Thunderstorm", "Wildfire", "Flood Warning")
-- **urgency**: Response time expected. Valid values: "Immediate", "Expected", "Future", "Past", "Unknown"
-- **severity**: Severity of the event. Valid values: "Extreme", "Severe", "Moderate", "Minor", "Unknown"
+- **urgency**: Response time expected. The only valid values are: "Immediate", "Expected", "Future", "Past", "Unknown"
+- **severity**: Severity of the event. The only valid values are: "Extreme", "Severe", "Moderate", "Minor", "Unknown"
 - **description**: Detailed description of the alert situation, hazards, and expected impacts
 - **instruction**: Recommended actions for recipients to take
 - **effective_from**: ISO 8601 datetime when alert becomes active (e.g., "2024-03-15T14:30:00Z")
@@ -34,7 +34,6 @@ Convert names of roads, highways, etc. to the districts and provinces containing
 - **specific_instruction**: (Optional) Additional or override instructions for this area
 
 # JSON Response Format:
-```json
 {
   "category": "string",
   "event": "string",
@@ -55,7 +54,6 @@ Convert names of roads, highways, etc. to the districts and provinces containing
     }
   ]
 }
-```
 
 **Alert Text:**
 {{text}}
@@ -460,7 +458,7 @@ def json_messages(markdown: str):
                     "content": [
                         {
                             "type": "text",
-                            "text": markdown_prompt.replace("{{text}}", 
+                            "text": json_prompt.replace("{{text}}", 
                                    """<!-- Page 1 -->
                                   Page 1 of 10
 
@@ -1348,7 +1346,7 @@ def json_messages(markdown: str):
                     "content": [
                         {
                             "type": "text",
-                            "text": markdown_prompt.replace("{{text}}", markdown)
+                            "text": json_prompt.replace("{{text}}", markdown)
                         }
                     ]
                 }

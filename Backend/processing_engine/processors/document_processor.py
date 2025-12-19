@@ -60,7 +60,7 @@ class DocumentProcessor:
     
     async def _prepare_images(self, job: QueueJob) -> List[bytes]:
         """Convert document to images (base64)""" 
-        file = await fetch_file(job.message.url)
+        file = await fetch_file(str(job.message.url))
         encoded_images = []
 
         if job.message.filetype in ["gif", "png", "jpeg", "jpg"]:

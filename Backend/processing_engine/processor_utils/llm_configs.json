@@ -35,13 +35,25 @@
         "api_key_name": "BAIDU_KEY",
         "base_url": "https://aistudio.baidu.com/llm/lmapi/v3",
         "default_params": {
-            "web_search": {
-                "enable": true
+            "extra_body":{
+                "web_search": {
+                    "enable": true
+                }
             },
-            "max_completion_tokens": 65536,
-            "response_format": {
-                "type": "json_object"
-            }
+            "max_completion_tokens": 65536
+        }
+    },
+    "ernie-5.0:baidu": {
+        "model": "ernie-5.0-thinking-preview",
+        "api_key_name": "BAIDU_KEY",
+        "base_url": "https://aistudio.baidu.com/llm/lmapi/v3",
+        "default_params": {
+            "extra_body":{
+                "web_search": {
+                    "enable": true
+                }
+            },
+            "max_completion_tokens": 65536
         }
     },
     "qwen3-vl:novita": {

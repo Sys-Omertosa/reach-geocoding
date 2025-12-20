@@ -3,6 +3,7 @@ from uuid import uuid4
 from typing import List
 import json
 import time
+from datetime import datetime, timezone
 from processing_engine.processors.document_processor import DocumentProcessor
 from processing_engine.processors.json_transformer import JSONTransformer
 from processing_engine.models.schemas import QueueJob
@@ -40,18 +41,39 @@ class QueueWorker:
             return True
         except Exception as e:
             self.logger.error(f"Job {job.msg_id} failed: {e}")
-            #await self._mark_failed(job.msg_id, str(e))
             return False
 
-    # async def _upsert(self, markdown: str, json_response: dict, alert: dict, alert_areas: List[dict]):
-    #     """Upsert new alerts to table"""
-    #     # Convert Pydantic models to dicts for database insertion
-    #     alert = alert.model_dump()
-    #     alert_areas_list = [area.model_dump() for area in alert_areas]
-
-    #     # Upsert the single alert row
-    #     self.db.table("alerts").upsert(alert, on_conflict='document_id').execute()
-
-    #     # Upsert the alert_areas rows (a list of JSON objects)
-    #     if alert_areas_list:
-    #         self.db.table("alerts_areas").upsert(alert_areas_list, on_conflict='alert_id').execute()
+    async def _upload(self, markdown: str, json_response: dict, alert: dict, alert_areas: List[dict]):
+        """Upsert new alerts to table"""
+        try:
+            document_id = alert["document_id"]
+            
+            # Upload the Markdown and JSON
+            document_response = self.db.table("documents").update({
+                "processed_at": datetime.now(timezone.utc).isoformat(),
+                "raw_text": markdown,
+                "structured_text": json_response
+            }).eq("id", document_id).execute()
+                        
+            # Upsert the single alert row
+            alert_response = self.db.table("alerts").upsert(alert, on_conflict='document_id').execute()
+            
+            # Upsert the alert_areas rows (a list of JSON objects)
+            alert_areas_response = self.db.table("alert_areas").upsert(alert_areas, on_conflict='alert_id').execute()
+                        
+            self.logger.info(f"Successfully uploaded data for document {document_id}")
+            return True
+            
+        except Exception as e:
+            self.logger.error(f"Upload failed for document {document_id}: {e}")
+            return False
+    
+    async def _mark_complete(self, msg_id: int):
+        response = self.db.schema("pgmq_public").rpc("delete", {
+            "queue_name": "processing_queue",
+            "message_id": msg_id
+        }).execute()
+        if not response.error:
+            self.logger.info(f"Successfully removed job {msg_id} from queue")
+        else:
+            self.logger.error(f"Error removing job {msg_id}: {response.error}")

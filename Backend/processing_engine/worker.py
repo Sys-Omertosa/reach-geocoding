@@ -35,8 +35,8 @@ class QueueWorker:
             print(f"\n\n\n Alert:")
             print(json.dumps(alert, indent=4, sort_keys=False))
             print(f"\n\n\n Alert_Areas:")
-            for alert in alert_areas:
-                print(json.dumps(alert, indent=4, sort_keys=False))
+            for alert_area in alert_areas:
+                print(json.dumps(alert_area, indent=4, sort_keys=False))
             #await self._mark_complete(job.msg_id)
             return True
         except Exception as e:

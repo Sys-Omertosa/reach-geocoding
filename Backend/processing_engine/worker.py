@@ -29,6 +29,9 @@ class QueueWorker:
             json_response, alert, alert_areas = await self.alert_processor.transform(extracted, document_id, alert_id)
             end_time = time.time()
             json_response["processing_time"] = f"{end_time-start_time:.2f}"
+            # uploaded_success = await self._upload(markdown, json_response, alert, alert_areas)
+            # if uploaded_success:
+            #     await self._mark_complete(job.msg_id)
             print(f"\n\n\n Processed Dicts:")
             print(f"\n\n\n JSON:")
             print(json.dumps(json_response, indent=4, sort_keys=False))
@@ -37,7 +40,6 @@ class QueueWorker:
             print(f"\n\n\n Alert_Areas:")
             for alert_area in alert_areas:
                 print(json.dumps(alert_area, indent=4, sort_keys=False))
-            #await self._mark_complete(job.msg_id)
             return True
         except Exception as e:
             self.logger.error(f"Job {job.msg_id} failed: {e}")
@@ -54,12 +56,21 @@ class QueueWorker:
                 "raw_text": markdown,
                 "structured_text": json_response
             }).eq("id", document_id).execute()
+            if document_response.error or not document_response.data:
+                self.logger.error(f"Text upload failed for document {document_id}: {e}")
+                raise Exception(document_response.error)
                         
             # Upsert the single alert row
             alert_response = self.db.table("alerts").upsert(alert, on_conflict='document_id').execute()
+            if alert_response.error or not alert_response.data:
+                self.logger.error(f"Alert upload failed for alert {document_id}: {e}")
+                raise Exception(alert_response.error)
             
-            # Upsert the alert_areas rows (a list of JSON objects)
+            # Upsert the alert_areas rows
             alert_areas_response = self.db.table("alert_areas").upsert(alert_areas, on_conflict='alert_id').execute()
+            if alert_areas_response.error or not alert_areas_response.data:
+                self.logger.error(f"Alert_Areas upload failed for document {document_id}: {e}")
+                raise Exception(alert_areas_response.error)
                         
             self.logger.info(f"Successfully uploaded data for document {document_id}")
             return True

@@ -15,10 +15,4 @@ __pycache__/
 Prototype/
 .vscode/
 .vscode
-.envrc
-
-# Test results
-Backend/geocoding/test_results.json
-Backend/geocoding/test_setup_results.json
-test_results.json
-test_setup_results.json
+claude.md

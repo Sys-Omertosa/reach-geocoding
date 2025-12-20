@@ -10,7 +10,7 @@ async def fetch_file(url: str):
         response.raise_for_status()
         return response.content
 
-def stream_to_images(file: bytes, dpi: int = 72):
+def pdf_to_images(file: bytes, dpi: int = 72):
     """
     Returns a list of PIL images for a pdf file byte stream
     """

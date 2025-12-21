@@ -95,7 +95,7 @@ Don't miss any information. Be wary of typos in the document, and correct if pos
 - **areas**: Array of affected locations with optional area-specific overrides
 
 # Area Object Fields:
-- **place_names**: Array of location names (cities, provinces, disctricts, province with directional term, etc.)
+- **place_names**: Array of location names (cities, provinces, disctricts, province with directional term, etc.). If listing more specific parts (districts/tehsils/regions), don't mention more general regions(whole provinces, larger regions, etc.)
 - **specific_effective_from**: (Optional) Override effective_from for this area(s)
 - **specific_effective_until**: (Optional) Override effective_until for this area(s)
 - **specific_urgency**: (Optional) Override urgency for this area(s)

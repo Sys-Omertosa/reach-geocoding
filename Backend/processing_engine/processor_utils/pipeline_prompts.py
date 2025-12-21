@@ -1,6 +1,14 @@
-file_1 = ""
-file_2 = ""
-file_3 = ""
+import asyncio
+from processing_engine.processor_utils.doc_utils import url_to_b64_string
+
+files=["https://www.ndma.gov.pk/storage/advisories/August2025/WMpJfGUze00GwXezWekr.pdf", 
+       "https://www.ndma.gov.pk/storage/advisories/December2025/evgtuouxcEBpD4FSxL9w.pdf", 
+       "https://www.ndma.gov.pk/storage/projection-impact-langs/August2024/S1I2t0WfnuuE6fmYyK3D.pdf"]
+
+b64_files = []
+for file in files:
+    b64_string = asyncio.run(url_to_b64_string(file))
+    b64_files.append(b64_string)
 
 
 json_prompt = """Convert the attached Pakistani disaster alert/information document to the specified CAP-derived JSON structure. Output only English text and ignore any Urdu text.
@@ -40,7 +48,7 @@ Be wary of typos in the document, and correct if possible. Output only the JSON 
     2.  Wrong: "Punjab (plain areas)"
         Correct: "Central Punjab", "South Punjab"
     3.  Wrong: "Upper Sindh"
-        Correct: "North Sindg"
+        Correct: "North Sindh"
     4.  Wrong: "Potohar region"
         Correct: "Rawalpindi", "Attock", "Chakwal", "Jhelum"
 

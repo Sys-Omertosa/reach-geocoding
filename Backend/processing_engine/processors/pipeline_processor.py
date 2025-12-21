@@ -1,39 +1,70 @@
-import io
-import time
-import sys
-import asyncio
 import json
 from uuid import uuid4
-from PIL import Image 
-from typing import List
 from pydantic import ValidationError
 
 from processing_engine.processor_utils.llm_client import LLMClient
-from processing_engine.processor_utils.prompts import markdown_messages
-from processing_engine.processor_utils.prompts import json_messages
-from processing_engine.processor_utils.doc_utils import fetch_file, pdf_to_images, to_base64
+from processing_engine.processor_utils.pipeline_prompts import messages
+from processing_engine.processor_utils.doc_utils import url_to_b64_strings
 from processing_engine.models.schemas import QueueJob, Alert, AlertArea, StructuredAlert
+
 
 class PipelineProcessor():
     def __init__(self, llm: str):
         self.llm = LLMClient(llm)
     
-    async def transform(self, job):
-        lmao=1
+    async def transform(self, job: QueueJob, document_id: str, alert_id: str):
+        file = await url_to_b64_strings(job.message.url)
+        llm_message = await messages(file)
+        response = self.llm.call(llm_message)
+        json_response, alert, alert_areas = self._parse(response, document_id, alert_id)
+        return json_response, alert, alert_areas
     
-    async def _prepare_images(self, job: QueueJob) -> List[bytes]:
-        """Convert document to images (base64)""" 
-        file = await fetch_file(str(job.message.url))
-        encoded_images = []
+    def _parse(self, response: str, document_id: str, alert_id: str) -> tuple[dict, Alert, list[AlertArea]]:
+        """Parse LLM JSON response"""
+        response = response[response.find("{") : response.rfind("}") + 1]
+        
+        try:
+            # Parse and validate JSON structure
+            structured_alert = StructuredAlert.model_validate_json(response)
+            json_response = structured_alert.model_dump()
+            
+            # Create Alert object
+            alert_model = Alert(
+                id=alert_id,
+                document_id=document_id,
+                category=structured_alert.category,
+                event=structured_alert.event,
+                urgency=structured_alert.urgency,
+                severity=structured_alert.severity,
+                description=structured_alert.description,
+                instruction=structured_alert.instruction,
+                effective_from=structured_alert.effective_from,
+                effective_until=structured_alert.effective_until
+            )
 
-        if job.message.filetype in ["gif", "png", "jpeg", "jpg"]:
-            pil_image = Image.open(io.BytesIO(file))
-            encoded_images.append(to_base64(pil_image))
-        
-        elif job.message.filetype == "pdf":
-            pil_images = pdf_to_images(file)
-            for pil_image in pil_images:
-                encoded_images.append(to_base64(pil_image))
-        
-        return encoded_images
-        
+            alert = alert_model.model_dump(mode='json')
+            
+            # Create AlertArea objects from the areas list
+            alert_areas = []
+            for area_list in structured_alert.areas:
+                for place_name in area_list.place_names:
+                    # TODO: Implement geocoding to get actual place_id
+                    place_id = str(uuid4())  # Placeholder until geocoding is implemented
+                    
+                    alert_area_model = AlertArea(
+                        alert_id=alert_id,
+                        place_id=place_id,
+                        specific_effective_from=area_list.specific_effective_from,
+                        specific_effective_until=area_list.specific_effective_until,
+                        specific_urgency=area_list.specific_urgency,
+                        specific_severity=area_list.specific_severity,
+                        specific_instruction=area_list.specific_instruction
+                    )
+                    alert_areas.append(alert_area_model.model_dump(mode='json'))
+            
+            return json_response, alert, alert_areas
+            
+        except json.JSONDecodeError as e:
+            raise ValueError(f"LLM returned invalid JSON: {e}")
+        except ValidationError as e:
+            raise ValueError(f"JSON doesn't match expected schema: {e}")

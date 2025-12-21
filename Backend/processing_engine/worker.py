@@ -8,15 +8,33 @@ from datetime import datetime, timezone
 #from processing_engine.processors.json_transformer import JSONTransformer
 from processing_engine.processors.pipeline_processor import PipelineProcessor
 from processing_engine.models.schemas import QueueJob
+from processing_engine.processor_utils.pipeline_prompts import _load_examples
+
 
 class QueueWorker:
     def __init__(self, supabase):
         self.logger = logging.getLogger(__name__)
         self.db = supabase
         self.processor = PipelineProcessor("ernie-4.5-vl-thinking:baidu")
+        self._cache_initialized = False
+
+    async def initialize(self):
+        """Pre-warm caches before processing jobs"""
+        if not self._cache_initialized:
+            self.logger.info("Pre-warming example files cache...")
+            try:
+                await _load_examples()
+                self._cache_initialized = True
+                self.logger.info("Cache pre-warming complete")
+            except Exception as e:
+                self.logger.error(f"Failed to pre-warm cache: {e}")
+                raise
 
     async def process_job(self, job: QueueJob):
         try:
+            if not self._cache_initialized:
+                await self.initialize()
+
             start_time = time.time()
             document_id = job.message.document_id
             alert_id = str(uuid4())

@@ -1,7 +1,8 @@
+import asyncio
 from typing import List
+import logging
 from processing_engine.processor_utils.doc_utils import url_to_b64_strings
 
-# Hardcoded example URLs - always used for few-shot prompting
 _EXAMPLE_URLS = [
     "https://www.ndma.gov.pk/storage/advisories/August2025/WMpJfGUze00GwXezWekr.pdf", 
     "https://www.ndma.gov.pk/storage/advisories/December2025/evgtuouxcEBpD4FSxL9w.pdf", 
@@ -10,16 +11,37 @@ _EXAMPLE_URLS = [
 
 # Cache for base64-encoded example files
 _cached_b64_files = None
+_cache_lock = asyncio.Lock()
 
-async def _load_examples():
-  """Load and cache base64-encoded example files."""
+logger = logging.getLogger(__name__)
+
+async def _load_examples() -> List[List[str]]:
+  """
+  Load example files
+  """
   global _cached_b64_files
-  if _cached_b64_files is None:
-      _cached_b64_files = []
-      for url in _EXAMPLE_URLS:
-          b64_strings = await url_to_b64_strings(url)
-          _cached_b64_files.append(b64_strings)
-  return _cached_b64_files
+  
+  # Fast path: cache already initialized
+  if _cached_b64_files is not None:
+    return _cached_b64_files
+  
+  # Slow path: acquire lock and initialize cache
+  async with _cache_lock:
+    # Double-check after acquiring lock (another coroutine may have initialized)
+    if _cached_b64_files is not None:
+        return _cached_b64_files
+    
+    print("Initializing example files cache...")  # Debug log
+    
+    try:
+      tasks = [url_to_b64_strings(url) for url in _EXAMPLE_URLS]
+      b64_files = await asyncio.gather(*tasks)
+      _cached_b64_files = b64_files
+      logger.info(f"Cache initialized with {len(_cached_b64_files)} example files")
+      return _cached_b64_files
+    except Exception as e:
+      logger.error(f"Failed to initialize example cache: {e}")
+      raise
 
 system_prompt = """You are an expert disaster alert processor specializing in Pakistani emergency documents. 
 Your role is to extract structured information from disaster alerts, advisories, and warnings issued by Pakistani authorities (NDMA, PMD, etc.).

@@ -10,10 +10,15 @@ from utils import load_env, supabase_client
 
 load_env()
 logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 supabase = supabase_client()
 
 async def main(LIMIT = 5):
     worker = QueueWorker(supabase)
+
+    logger.info("Initializing worker...")
+    await worker.initialize()
+    logger.info("Worker ready")
 
     while True:
         response = supabase.schema("pgmq_public").rpc("read", {

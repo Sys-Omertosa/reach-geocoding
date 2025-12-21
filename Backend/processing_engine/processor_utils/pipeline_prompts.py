@@ -66,7 +66,7 @@ Don't miss any information. Be wary of typos in the document, and correct if pos
 - **urgency**: Response time expected. The only valid values are: "Immediate", "Expected", "Future", "Past", "Unknown"
 - **severity**: Severity of the event. The only valid values are: "Extreme", "Severe", "Moderate", "Minor", "Unknown"
 - **description**: Description of the alert situation, hazards, and expected impacts in simple language
-- **instruction**: A numbered list of recommended actions for citizens (not government personnel) to take. If no citizen-centric instructions present but needed, generate your own with [AI-generated] tag at the end of the list. Use proper end-lines "\n" at the end of each list instruction.
+- **instruction**: A numbered list of recommended actions for citizens (not government personnel) to take. If no citizen-centric instructions present but needed, generate your own with [AI-generated] tag at the end of the list. Use proper end-lines "\n" at the end of each list instruction. Limit instructions to 8 items or below.
 
 - **effective_from**: ISO 8601 datetime when alert becomes active (e.g., "2024-03-15T14:30:00Z")
 - **effective_until**: ISO 8601 datetime when alert expires
@@ -96,6 +96,8 @@ Don't miss any information. Be wary of typos in the document, and correct if pos
         Correct: "North Sindh"
     4.  Wrong: "Potohar region"
         Correct: "Rawalpindi", "Attock", "Chakwal", "Jhelum"
+    5.  Wrong: "Sindh Coastal Areas"
+        Correct: "Southern Sindh"
 
 # JSON Response Format:
 {

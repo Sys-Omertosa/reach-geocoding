@@ -5,6 +5,7 @@ import fitz
 from httpx import AsyncClient
 from urllib.parse import urlparse
 import os
+from typing import List
 
 async def fetch_file(url: str):
     async with AsyncClient(timeout=60.0) as http_client:
@@ -35,23 +36,27 @@ def to_base64(img: Image.Image) -> str:
     img.save(buffered, format="JPEG", quality=90)
     return base64.b64encode(buffered.getvalue()).decode()
 
-async def url_to_b64_string(url: str):
+async def url_to_b64_strings(url: str) -> List[str]:
     _, file_ext = os.path.splitext(urlparse(url).path)
     file_type = file_ext.lstrip('.').lower()
     file = await fetch_file(url)
     
+    strings = []
     if file_type in ["png", "jpeg", "jpg", "gif", "webp"]:
         mime_type = "jpeg" if file_type == "jpg" else file_type
         b64_encoding = base64.b64encode(file).decode("utf-8")
-        return f"data:image/{mime_type};base64,{b64_encoding}"
+        strings.append(f"data:image/{mime_type};base64,{b64_encoding}")
     
     elif file_type == "pdf":
         images = pdf_to_images(file)
         if images:
-            return f"data:image/jpeg;base64,{to_base64(images[0])}"
+            for image in images:
+                strings.append(f"data:image/jpeg;base64,{to_base64(image)}")
         else:
             raise ValueError("Could not extract images from PDF")
     
     else:
         b64_encoding = base64.b64encode(file).decode("utf-8")
-        return f"data:application/octet-stream;base64,{b64_encoding}"
+        strings.append(f"data:application/octet-stream;base64,{b64_encoding}")
+    
+    return strings

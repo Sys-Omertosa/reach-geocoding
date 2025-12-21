@@ -18,7 +18,7 @@ async def main(LIMIT = 5):
     while True:
         response = supabase.schema("pgmq_public").rpc("read", {
             "queue_name": "processing_queue",
-            "sleep_seconds": 0,
+            "sleep_seconds": 60,
             "n": LIMIT
         }).execute()
         print(f"Jobs fetched: {len(response.data)}")

@@ -1,5 +1,4 @@
 from typing import List
-import asyncio
 from processing_engine.processor_utils.doc_utils import url_to_b64_strings
 
 # Hardcoded example URLs - always used for few-shot prompting
@@ -67,7 +66,7 @@ Don't miss any information. Be wary of typos in the document, and correct if pos
 - **urgency**: Response time expected. The only valid values are: "Immediate", "Expected", "Future", "Past", "Unknown"
 - **severity**: Severity of the event. The only valid values are: "Extreme", "Severe", "Moderate", "Minor", "Unknown"
 - **description**: Description of the alert situation, hazards, and expected impacts in simple language
-- **instruction**: Recommended actions for citizens (not government personnel) to take. If no citizen-centric instructions present but needed, generate your own with [AI-generated] tag at the end
+- **instruction**: A numbered list of recommended actions for citizens (not government personnel) to take. If no citizen-centric instructions present but needed, generate your own with [AI-generated] tag at the end of the list. Use proper end-lines "\n" at the end of each list instruction.
 
 - **effective_from**: ISO 8601 datetime when alert becomes active (e.g., "2024-03-15T14:30:00Z")
 - **effective_until**: ISO 8601 datetime when alert expires

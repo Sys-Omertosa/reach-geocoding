@@ -33,12 +33,10 @@ class LLMClient:
 
         return OpenAI(api_key=key, base_url=url)
     
-    def call(self, messages, **kwargs):
+    async def call(self, messages, **kwargs):
         """Make a call to the LLM"""
-        #call(self, messages, **kwargs)
         #Merge default and custom params
         params = {**self.config["default_params"], **kwargs}
-        #params = self.config["default_params"]
         
         response = self._client.chat.completions.create(
             model = self.config["model"],

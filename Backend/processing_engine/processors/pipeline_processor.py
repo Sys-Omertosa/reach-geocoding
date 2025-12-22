@@ -15,7 +15,7 @@ class PipelineProcessor():
     async def transform(self, job: QueueJob, document_id: str, alert_id: str):
         file = await url_to_b64_strings(job.message.url)
         llm_message = await messages(file)
-        response = self.llm.call(llm_message)
+        response = await self.llm.call(llm_message)
         json_response, alert, alert_areas = self._parse(response, document_id, alert_id)
         return json_response, alert, alert_areas
     

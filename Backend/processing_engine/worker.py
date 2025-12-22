@@ -65,7 +65,7 @@ class QueueWorker:
             document_id = alert["document_id"]
             
             # Upload the Markdown and JSON
-            document_response = self.db.table("documents").update({
+            document_response = await self.db.table("documents").update({
                 "processed_at": datetime.now(timezone.utc).isoformat(),
                 "structured_text": json_response
             }).eq("id", document_id).execute()
@@ -74,13 +74,13 @@ class QueueWorker:
                 raise Exception(document_response.error)
                         
             # Upsert the single alert row
-            alert_response = self.db.table("alerts").upsert(alert, on_conflict='document_id').execute()
+            alert_response = await self.db.table("alerts").upsert(alert, on_conflict='document_id').execute()
             if alert_response.error or not alert_response.data:
                 self.logger.error(f"Alert upload failed for alert {document_id}: {e}")
                 raise Exception(alert_response.error)
             
             # Upsert the alert_areas rows
-            alert_areas_response = self.db.table("alert_areas").upsert(alert_areas, on_conflict='alert_id').execute()
+            alert_areas_response = await self.db.table("alert_areas").upsert(alert_areas, on_conflict='alert_id').execute()
             if alert_areas_response.error or not alert_areas_response.data:
                 self.logger.error(f"Alert_Areas upload failed for document {document_id}: {e}")
                 raise Exception(alert_areas_response.error)
@@ -93,7 +93,7 @@ class QueueWorker:
             return False
     
     async def _mark_complete(self, msg_id: int):
-        response = self.db.schema("pgmq_public").rpc("delete", {
+        response = await self.db.schema("pgmq_public").rpc("delete", {
             "queue_name": "processing_queue",
             "message_id": msg_id
         }).execute()

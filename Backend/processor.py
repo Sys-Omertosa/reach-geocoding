@@ -4,16 +4,16 @@ import json
 import sys
 from processing_engine.worker import QueueWorker
 from processing_engine.models.schemas import QueueJob
-from utils import load_env, supabase_client
+from utils import load_env, async_supabase_client
 
 #################################################
 
 load_env()
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
-supabase = supabase_client()
 
 async def main(LIMIT = 5):
+    supabase = await async_supabase_client()
     worker = QueueWorker(supabase)
 
     logger.info("Initializing worker...")
@@ -21,7 +21,7 @@ async def main(LIMIT = 5):
     logger.info("Worker ready")
 
     while True:
-        response = supabase.schema("pgmq_public").rpc("read", {
+        response = await supabase.schema("pgmq_public").rpc("read", {
             "queue_name": "processing_queue",
             "sleep_seconds": 300,
             "n": LIMIT

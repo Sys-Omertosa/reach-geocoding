@@ -4,29 +4,7 @@ from fastapi import Depends, HTTPException, status
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from pydantic import BaseModel
 import os
-
-#################################################
-# IMAGE & APP SETUP
-#################################################
-
-image = (
-    modal.Image.debian_slim()
-    .pip_install(
-        "fastapi[standard]",
-        "uvicorn",
-        "httpx",
-        "supabase",
-        "python-dotenv",
-        "beautifulsoup4",
-        "pandas",
-        "openai",
-        "PyMuPDF",
-        "pillow"
-    )
-    .add_local_python_source("processing_engine")  # Include local dependencies
-)
-
-app = modal.App(name="reach-processor", image=image)
+from utils import load_env, async_supabase_client
 
 #################################################
 # AUTH & MODELS
@@ -41,6 +19,29 @@ class ProcessResponse(BaseModel):
     status: str
     message: str
     job_count: int
+
+#################################################
+# IMAGE & APP SETUP
+#################################################
+
+image = (
+    modal.Image.debian_slim()
+    .pip_install(
+        "fastapi",
+        "uvicorn",
+        "httpx",
+        "supabase",
+        "python-dotenv",
+        "beautifulsoup4",
+        "pandas",
+        "openai",
+        "PyMuPDF",
+        "pillow"
+    )
+    .add_local_python_source("processing_engine")
+)
+
+app = modal.App(name="reach-processor", image=image).include(load_env).include(async_supabase_client)
 
 #################################################
 # BACKGROUND WORKER FUNCTION
@@ -58,7 +59,6 @@ async def process_jobs(limit: int):
     import logging
     from processing_engine.worker import QueueWorker
     from processing_engine.models.schemas import QueueJob
-    from utils import load_env, async_supabase_client
 
     # Setup logging
     logging.basicConfig(

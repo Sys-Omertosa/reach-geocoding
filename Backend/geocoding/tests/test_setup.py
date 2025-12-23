@@ -17,7 +17,7 @@ from datetime import datetime
 # Add parent directory to path to import from Backend
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
-SETUP_RESULTS_FILE = Path(__file__).parent / "test_setup_results.json"
+# All test output goes to terminal only (no file output)
 
 def print_phase_header(phase_num: int, title: str):
     """Print a nice header for each test phase"""
@@ -324,17 +324,19 @@ def test_phase_3():
         
         # Test parsing
         test_cases = [
-            "Central Sindh and Balochistan",
-            "Northern KPK",
-            "South-Eastern Punjab",
-            "Islamabad"  # No direction
+            ("Central Sindh", "Should extract direction and single place"),
+            ("Northern Khyber Pakhtunkhwa", "Should extract direction and place"),
+            ("South-Eastern Punjab", "Should handle compound directions"),
+            ("Islamabad", "Should return None for direction")
         ]
         
-        for test_input in test_cases:
+        for test_input, description in test_cases:
             direction, places = parser.parse(test_input)
-            print_info(f"  '{test_input}' → Direction: {direction.value if direction else 'None'}, Places: {places}")
+            print_info(f"  '{test_input}'")
+            print_info(f"    → Direction: {direction.value if direction else 'None'}, Places: {places}")
+            print_info(f"    → {description}")
         
-        print_success("Directional parsing working")
+        print_success("Directional parsing working (no conjunction splitting)")
             
     except Exception as e:
         print_error(f"DirectionalParser failed: {e}")
@@ -402,7 +404,13 @@ def test_phase_4():
         print_success("All components initialized")
         
         # Test workflow
-        test_locations = ["Islamabad", "Northern Punjab", "Karachi"]
+        test_locations = [
+            "Islamabad",
+            "Northern Punjab",
+            "Karachi",
+            "Central Sindh",
+            "Western Balochistan"
+        ]
         
         for location in test_locations:
             print_info(f"\n  Processing: '{location}'")
@@ -436,16 +444,6 @@ def test_phase_4():
 # ============================================================================
 # Main Test Runner
 # ============================================================================
-
-def save_setup_results(results: dict):
-    """Save setup test results to JSON file."""
-    try:
-        with open(SETUP_RESULTS_FILE, 'w', encoding='utf-8') as f:
-            json.dump(results, f, indent=2, ensure_ascii=False)
-        print(f"\n📝 Setup results saved to: {SETUP_RESULTS_FILE}")
-    except Exception as e:
-        print(f"\n⚠️  Failed to save results: {e}")
-
 
 def main():
     """Main test runner"""
@@ -502,8 +500,6 @@ def main():
                 "message": "Setup failed - see phase details"
             }
         
-        save_setup_results(results)
-        
     elif args.phase:
         phases = {
             1: ("Configuration & Connectivity", test_phase_1),
@@ -523,8 +519,6 @@ def main():
             "status": "success" if success else "failed",
             "message": f"Phase {args.phase} completed"
         }
-        
-        save_setup_results(results)
         
     else:
         parser.print_help()

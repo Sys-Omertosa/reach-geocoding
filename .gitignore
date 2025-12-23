@@ -8,7 +8,7 @@ Prototype/Shapefiles
 Prototype/REACH Prototype.sql
 .env
 *.env
-*.sql
+*.envrc
 Prototype/fake_data
 Frontend/env
 __pycache__/
@@ -16,4 +16,6 @@ Prototype/
 .vscode/
 .vscode
 claude.md
+results*.txt
+Prompts.md
 /Backend/processing_engine/examples

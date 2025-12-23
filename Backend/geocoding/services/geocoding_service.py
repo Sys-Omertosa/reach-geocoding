@@ -1,6 +1,7 @@
 from typing import List, Dict, Any, Optional, Tuple, Set
 from uuid import UUID
 import logging
+import asyncio
 from collections import defaultdict
 
 from ..models import GeocodeResult, MatchedPlace, GeocodeOptions
@@ -372,11 +373,14 @@ class GeocodingService:
         """
         Apply hierarchical aggregation to minimize redundant place IDs.
         
-        Logic:
-        - If all children of a parent are present, return only the parent
-        - Apply recursively up the hierarchy (bottom-up aggregation)
+        Two-way aggregation logic:
+        1. Remove children when ALL children of a parent are present → keep only parent
+        2. Remove parents when ANY children are present → keep only the more specific children
+        
+        This ensures we return the most specific level without redundancy.
         
         Example: If all 5 tehsils of a district are matched, return only the district.
+                 If only 3 of 5 tehsils are matched, return those 3 tehsils (not the district).
         
         Time Complexity: O(n + k*d) where:
             n = number of places
@@ -387,7 +391,7 @@ class GeocodingService:
             places: List of matched places with hierarchy info
             
         Returns:
-            Aggregated list of places (redundant children removed)
+            Aggregated list of places (redundant places removed)
         """
         if not places:
             return []
@@ -420,55 +424,88 @@ class GeocodingService:
             parent_key = str(parent_id) if parent_id else None
             by_parent[parent_key].append(place)
         
-        # Get unique parent IDs that exist in our results (potential aggregation targets)
-        parents_in_results = set()
+        # Track which places to remove (either children or parents)
+        places_to_remove: Set[str] = set()
+        
+        # STEP 1: Remove redundant parents (when ANY of their children are present)
         for place in valid_places:
             parent_id = place.get('parent_id')
             if parent_id and str(parent_id) in place_by_id:
-                parents_in_results.add(str(parent_id))
+                # This place has a parent in the results - mark parent for removal
+                places_to_remove.add(str(parent_id))
+                logger.debug(f"Removing parent {parent_id} because child {place['id']} is present")
         
-        logger.debug(f"Parents in results that may aggregate children: {len(parents_in_results)}")
+        # STEP 2: Check if we should aggregate children UP to parent
+        # Get unique parent IDs from all matched places (parents don't need to be in results already)
+        unique_parent_ids = set()
+        for place in valid_places:
+            parent_id = place.get('parent_id')
+            if parent_id:
+                unique_parent_ids.add(str(parent_id))
         
-        # Get actual child counts from database for all parents in results
-        parent_uuids = [UUID(pid) for pid in parents_in_results]
-        actual_child_counts = await self.repo.get_children_counts_batch(parent_uuids)
-        
-        logger.debug(f"Actual child counts from DB: {actual_child_counts}")
-        
-        # Determine which children to remove (their parent has ALL children present)
-        children_to_remove: Set[str] = set()
-        
-        for parent_id in parents_in_results:
-            # How many children does this parent have in our results?
-            children_in_results = by_parent.get(parent_id, [])
-            matched_count = len(children_in_results)
+        # Get actual child counts from database for all parent IDs
+        if unique_parent_ids:
+            parent_uuids = [UUID(pid) for pid in unique_parent_ids]
             
-            # How many children does this parent have in total?
-            total_count = actual_child_counts.get(parent_id, 0)
+            # OPTIMIZATION: Batch fetch both child counts AND parent details in parallel
+            actual_child_counts, parent_details = await asyncio.gather(
+                self.repo.get_children_counts_batch(parent_uuids),
+                self.repo.get_by_ids_batch(parent_uuids)
+            )
             
-            logger.debug(f"Parent {parent_id}: {matched_count}/{total_count} children matched")
+            logger.debug(f"Checking aggregation for {len(unique_parent_ids)} parents")
             
-            # If ALL children are present, mark children for removal
-            if total_count > 0 and matched_count >= total_count:
-                logger.info(f"Aggregating: Parent {parent_id} has all {total_count} children - removing children")
-                for child in children_in_results:
-                    children_to_remove.add(str(child['id']))
+            for parent_id in unique_parent_ids:
+                # How many children does this parent have in our results?
+                children_in_results = by_parent.get(parent_id, [])
+                matched_count = len(children_in_results)
+                
+                # How many children does this parent have in total?
+                total_count = actual_child_counts.get(parent_id, 0)
+                
+                logger.debug(f"Parent {parent_id}: {matched_count}/{total_count} children matched")
+                
+                # If ALL children are present, aggregate to parent
+                if total_count > 0 and matched_count >= total_count:
+                    logger.info(f"Aggregating UP: Parent {parent_id} has all {total_count} children - replacing with parent")
+                    
+                    # Add parent to results if not already there
+                    if parent_id not in place_by_id and parent_id in parent_details:
+                        place_by_id[parent_id] = parent_details[parent_id]
+                        valid_places.append(parent_details[parent_id])
+                    
+                    # Remove the parent from removal set (we want to keep it)
+                    places_to_remove.discard(parent_id)
+                    
+                    # Mark all children for removal
+                    for child in children_in_results:
+                        places_to_remove.add(str(child['id']))
         
-        # Build final result excluding aggregated children
+        # Build final result excluding marked places
         aggregated = []
         for place in valid_places:
             place_id = str(place['id'])
-            if place_id not in children_to_remove:
+            if place_id not in places_to_remove:
                 aggregated.append(place)
         
         logger.info(f"Aggregation: {len(valid_places)} -> {len(aggregated)} places "
-                    f"(removed {len(children_to_remove)} redundant children)")
+                    f"(removed {len(places_to_remove)} redundant places)")
         
-        # Recursive aggregation: if we removed children, check if parents can now be aggregated
-        # This handles cases like: all tehsils removed -> check if all districts can be removed
-        if children_to_remove and len(aggregated) > 1:
-            # Re-run aggregation on the reduced set (max depth = hierarchy levels = 4)
-            return await self._aggregate_hierarchy(aggregated)
+        # OPTIMIZATION: Check if we need recursive aggregation
+        # Only recurse if we added new parents that might themselves need aggregation
+        # This happens when districts aggregate to provinces, which might aggregate to country
+        if places_to_remove and len(aggregated) > 1:
+            # Check if any newly added parents have parent_ids in the result set
+            needs_recursion = False
+            for place in aggregated:
+                parent_id = place.get('parent_id')
+                if parent_id and str(parent_id) in {str(p['id']) for p in aggregated}:
+                    needs_recursion = True
+                    break
+            
+            if needs_recursion:
+                logger.debug("Recursive aggregation needed - parents have parents in result set")
+                return await self._aggregate_hierarchy(aggregated)
         
         return aggregated
     
@@ -503,3 +540,40 @@ class GeocodingService:
         )
         
         return sorted_candidates[:limit]
+    
+    async def geocode_batch_simple(self, place_names: List[str]) -> List[str]:
+        """
+        Simple batch geocoding interface.
+        
+        Accepts a list of place names and returns a list of place IDs.
+        This is a simplified interface that uses default options and
+        returns only the IDs from the first matched place for each input.
+        
+        Args:
+            place_names: List of location strings to geocode
+            
+        Returns:
+            List of place IDs (strings). Returns empty string if no match found.
+            
+        Example:
+            names = ["Islamabad", "Lahore", "Karachi"]
+            ids = await service.geocode_batch_simple(names)
+            # Returns: ["uuid-islamabad", "uuid-lahore", "uuid-karachi"]
+        """
+        options = GeocodeOptions()
+        results = []
+        
+        for name in place_names:
+            try:
+                result = await self.geocode_location(name, options)
+                if result.matched_places:
+                    # Return the first matched place ID
+                    results.append(str(result.matched_places[0].id))
+                else:
+                    # No match found
+                    results.append("")
+            except Exception as e:
+                logger.error(f"Error geocoding '{name}': {e}")
+                results.append("")
+        
+        return results

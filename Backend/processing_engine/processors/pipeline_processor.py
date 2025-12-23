@@ -47,10 +47,9 @@ class PipelineProcessor():
             # Create AlertArea objects from the areas list
             alert_areas = []
             for area_list in structured_alert.areas:
-                for place_name in area_list.place_names:
-                    # TODO: Implement geocoding to get actual place_id
-                    place_id = str(uuid4())  # Placeholder until geocoding is implemented
-                    
+                # TODO: Implement geocoding to get actual place_id
+                place_ids = str(uuid4())  # Placeholder until geocoding is implemented
+                for place_id in place_ids:
                     alert_area_model = AlertArea(
                         alert_id=alert_id,
                         place_id=place_id,

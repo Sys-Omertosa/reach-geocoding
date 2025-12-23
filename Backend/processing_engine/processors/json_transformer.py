@@ -1,7 +1,4 @@
 import json
-import os
-from typing import List
-from httpx import AsyncClient
 from pydantic import ValidationError
 from processing_engine.processor_utils.llm_client import LLMClient
 from processing_engine.models.schemas import ExtractedContent, Alert, AlertArea, StructuredAlert
@@ -69,20 +66,3 @@ class JSONTransformer:
             raise ValueError(f"LLM returned invalid JSON: {e}")
         except ValidationError as e:
             raise ValueError(f"JSON doesn't match expected schema: {e}")
-    
-    async def _geocode(self, places: List[str]) -> List[str]:        
-        url = os.getenv("MODAL_GEOCODER")
-        auth_token = os.getenv("SECRET_KEY")
-        
-        async with AsyncClient(timeout=120.0) as http_client:
-            response = await http_client.post(
-                url,
-                headers={
-                    "Authorization": f"Bearer {auth_token}",
-                    "Content-Type": "application/json"
-                },
-                json={"place_names": places}
-            )
-            response.raise_for_status()
-            data = response.json()
-            return data.get("place_ids", [])

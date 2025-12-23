@@ -25,7 +25,6 @@ class QueueWorker:
             try:
                 await _load_examples()
                 self._cache_initialized = True
-                self.logger.info("Cache pre-warming complete")
             except Exception as e:
                 self.logger.error(f"Failed to pre-warm cache: {e}")
                 raise
@@ -43,18 +42,22 @@ class QueueWorker:
             json_response, alert, alert_areas = await self.processor.transform(job, document_id, alert_id)
             end_time = time.time()
             json_response["processing_time"] = f"{end_time-start_time:.2f}"
-            # uploaded_success = await self._upload(json_response, alert, alert_areas)
-            # if uploaded_success:
-            #     await self._mark_complete(job.msg_id)
-            print(f"\n\n\n Processed Dicts:")
-            print(f"\n\n\n JSON:")
-            print(json.dumps(json_response, indent=4, sort_keys=False))
-            print(f"\n\n\n Alert:")
-            print(json.dumps(alert, indent=4, sort_keys=False))
-            print(f"\n\n\n Alert_Areas:")
-            for alert_area in alert_areas:
-                print(json.dumps(alert_area, indent=4, sort_keys=False))
-            return True
+
+            uploaded_success = await self._upload(json_response, alert, alert_areas)
+            if uploaded_success:
+                queue_pop_success = await self._mark_complete(job.msg_id)
+            if queue_pop_success:
+                self.logger.info(f"Succesfully processed and uploaded Job {job.msg_id}")
+                return True
+
+            # print(f"\n\n\n Processed Dicts:")
+            # print(f"\n\n\n JSON:")
+            # print(json.dumps(json_response, indent=4, sort_keys=False))
+            # print(f"\n\n\n Alert:")
+            # print(json.dumps(alert, indent=4, sort_keys=False))
+            # print(f"\n\n\n Alert_Areas:")
+            # for alert_area in alert_areas:
+            #     print(json.dumps(alert_area, indent=4, sort_keys=False))
         except Exception as e:
             self.logger.error(f"Job {job.msg_id} failed: {e}")
             return False
@@ -97,10 +100,12 @@ class QueueWorker:
             "queue_name": "processing_queue",
             "message_id": msg_id
         }).execute()
-        if not response.error:
+        if response.data and not response.error:
             self.logger.info(f"Successfully removed job {msg_id} from queue")
+            return True
         else:
             self.logger.error(f"Error removing job {msg_id}: {response.error}")
+            return False
 
 
 # class QueueWorker:

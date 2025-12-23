@@ -40,15 +40,17 @@ class QueueWorker:
             self.logger.info(f"Processing {job.msg_id}")
 
             json_response, alert, alert_areas = await self.processor.transform(job, document_id, alert_id)
+            if json_response and alert and alert_areas:
+                self.logger.info(f"Processed job {job.msg_id} successfully")
             end_time = time.time()
             json_response["processing_time"] = f"{end_time-start_time:.2f}"
 
-            uploaded_success = await self._upload(json_response, alert, alert_areas)
-            if uploaded_success:
-                queue_pop_success = await self._mark_complete(job.msg_id)
-            if queue_pop_success:
-                self.logger.info(f"Succesfully processed and uploaded Job {job.msg_id}")
-                return True
+            # uploaded_success = await self._upload(json_response, alert, alert_areas)
+            # if uploaded_success:
+            #     queue_pop_success = await self._mark_complete(job.msg_id)
+            # if queue_pop_success:
+            #     self.logger.info(f"Succesfully uploaded job {job.msg_id}")
+            return True
 
             # print(f"\n\n\n Processed Dicts:")
             # print(f"\n\n\n JSON:")

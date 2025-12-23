@@ -16,3 +16,5 @@ Prototype/
 .vscode/
 .vscode
 claude.md
+results*.txt
+Prompts.md

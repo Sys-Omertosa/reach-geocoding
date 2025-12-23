@@ -8,7 +8,7 @@ Prototype/Shapefiles
 Prototype/REACH Prototype.sql
 .env
 *.env
-*.sql
+*.envrc
 Prototype/fake_data
 Frontend/env
 __pycache__/

@@ -1,5 +1,7 @@
 import json
-from uuid import uuid4
+import os
+from typing import List
+from httpx import AsyncClient
 from pydantic import ValidationError
 from processing_engine.processor_utils.llm_client import LLMClient
 from processing_engine.models.schemas import ExtractedContent, Alert, AlertArea, StructuredAlert
@@ -16,11 +18,11 @@ class JSONTransformer:
         print(f"RAW JSON response from model: \n{extracted_json}")
 
         # Parse response
-        json_response, alert, alert_areas = self._parse(extracted_json, document_id, alert_id)
+        json_response, alert, alert_areas = await self._parse(extracted_json, document_id, alert_id)
 
         return json_response, alert, alert_areas
         
-    def _parse(self, response: str, document_id: str, alert_id: str) -> tuple[dict, Alert, list[AlertArea]]:
+    async def _parse(self, response: str, document_id: str, alert_id: str) -> tuple[dict, Alert, list[AlertArea]]:
         """Parse LLM JSON response"""
         response = response[response.find("{") : response.rfind("}") + 1]
         
@@ -48,10 +50,8 @@ class JSONTransformer:
             # Create AlertArea objects from the areas list
             alert_areas = []
             for area_list in structured_alert.areas:
-                for place_name in area_list.place_names:
-                    # TODO: Implement geocoding to get actual place_id
-                    place_id = str(uuid4())  # Placeholder until geocoding is implemented
-                    
+                place_ids = await self._geocode(area_list.place_names)
+                for place_id in place_ids:                    
                     alert_area_model = AlertArea(
                         alert_id=alert_id,
                         place_id=place_id,
@@ -69,3 +69,20 @@ class JSONTransformer:
             raise ValueError(f"LLM returned invalid JSON: {e}")
         except ValidationError as e:
             raise ValueError(f"JSON doesn't match expected schema: {e}")
+    
+    async def _geocode(self, places: List[str]) -> List[str]:        
+        url = os.getenv("MODAL_GEOCODER")
+        auth_token = os.getenv("SECRET_KEY")
+        
+        async with AsyncClient(timeout=120.0) as http_client:
+            response = await http_client.post(
+                url,
+                headers={
+                    "Authorization": f"Bearer {auth_token}",
+                    "Content-Type": "application/json"
+                },
+                json={"place_names": places}
+            )
+            response.raise_for_status()
+            data = response.json()
+            return data.get("place_ids", [])

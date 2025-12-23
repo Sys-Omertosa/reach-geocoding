@@ -74,20 +74,36 @@ class QueueWorker:
                 "structured_text": json_response
             }).eq("id", document_id).execute()
             if document_response.error or not document_response.data:
-                self.logger.error(f"Text upload failed for document {document_id}: {e}")
+                self.logger.error(f"JSON upload failed for document {document_id}: {document_response.error}")
                 raise Exception(document_response.error)
                         
-            # Upsert the single alert row
-            alert_response = await self.db.table("alerts").upsert(alert, on_conflict='document_id').execute()
+            # Upsert the alert row (ensures only one alert per document)
+            alert_response = await self.db.table("alerts").upsert(
+                alert, 
+                on_conflict="document_id"
+            ).execute()
             if alert_response.error or not alert_response.data:
-                self.logger.error(f"Alert upload failed for alert {document_id}: {e}")
+                self.logger.error(f"Alert upload failed for alert {document_id}: {alert_response.error}")
                 raise Exception(alert_response.error)
             
-            # Upsert the alert_areas rows
-            alert_areas_response = await self.db.table("alert_areas").upsert(alert_areas, on_conflict='alert_id').execute()
-            if alert_areas_response.error or not alert_areas_response.data:
-                self.logger.error(f"Alert_Areas upload failed for document {document_id}: {e}")
-                raise Exception(alert_areas_response.error)
+            # Get the actual alert_id from the upserted row (may differ if updating existing)
+            actual_alert_id = alert_response.data[0]["id"]
+            
+            # Delete any existing alert_areas for this alert (in case of re-processing)
+            await self.db.table("alert_areas").delete().eq("alert_id", actual_alert_id).execute()
+            
+            # Insert the alert_areas rows (only if there are any)
+            if alert_areas:
+                # Update alert_id in case it changed due to upsert
+                for area in alert_areas:
+                    area["alert_id"] = actual_alert_id
+                    
+                alert_areas_response = await self.db.table("alert_areas").insert(alert_areas).execute()
+                if alert_areas_response.error or not alert_areas_response.data:
+                    self.logger.error(f"Alert_Areas upload failed for document {document_id}: {alert_areas_response.error}")
+                    raise Exception(alert_areas_response.error)
+            else:
+                self.logger.warning(f"No valid alert_areas to upload for document {document_id}")
                         
             self.logger.info(f"Successfully uploaded data for document {document_id}")
             return True

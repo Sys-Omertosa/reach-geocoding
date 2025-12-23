@@ -67,8 +67,7 @@ image = (
         "geopy",
         "redis"
     )
-    .add_local_dir("geocoding", remote_path="/root/geocoding")
-)
+    .add_local_dir("geocoding", remote_path="/root/geocoding"))
 
 app = modal.App(name="reach-geocoder", image=image)
 

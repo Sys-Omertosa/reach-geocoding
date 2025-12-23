@@ -50,7 +50,10 @@ class PipelineProcessor():
             alert_areas = []
             for area_list in structured_alert.areas:
                 place_ids = await self._geocode(area_list.place_names)
-                for place_id in place_ids:                    
+                for place_id in place_ids:
+                    # Skip empty place_ids (unmatched locations)
+                    if not place_id:
+                        continue
                     alert_area_model = AlertArea(
                         alert_id=alert_id,
                         place_id=place_id,

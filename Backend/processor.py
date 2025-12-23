@@ -85,7 +85,7 @@ async def process_jobs(limit: int = 5):
             # Fetch jobs from queue
             response = await supabase.schema("pgmq_public").rpc("read", {
                 "queue_name": "processing_queue",
-                "sleep_seconds": 600,
+                "sleep_seconds": 1200,
                 "n": limit
             }).execute()
             

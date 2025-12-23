@@ -47,9 +47,9 @@ class QueueWorker:
             uploaded_success = await self._upload(json_response, alert, alert_areas)
             if uploaded_success:
                 queue_pop_success = await self._mark_complete(job.msg_id)
-            if queue_pop_success:
-                self.logger.info(f"Succesfully uploaded job {job.msg_id}")
-                return True
+                if queue_pop_success:
+                    self.logger.info(f"Successfully uploaded job {job.msg_id}")
+                    return True
 
             # print(f"\n\n\n Processed Dicts:")
             # print(f"\n\n\n JSON:")

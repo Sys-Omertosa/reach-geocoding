@@ -13,12 +13,13 @@ from utils import load_env, async_supabase_client
 auth_scheme = HTTPBearer()
 
 class ProcessRequest(BaseModel):
-    limit: int = 10
+    limit: int = 5
+    worker_count: int = 4
 
 class ProcessResponse(BaseModel):
     status: str
     message: str
-    job_count: int
+    worker_count: int
 
 #################################################
 # IMAGE & APP SETUP
@@ -38,21 +39,21 @@ image = (
         "PyMuPDF",
         "pillow"
     )
-    .add_local_python_source("processing_engine")
+    .add_local_dir("processing_engine", remote_path="/root/processing_engine")
+    .add_local_file("utils.py", remote_path="/root/utils.py")
 )
 
-app = modal.App(name="reach-processor", image=image).include(load_env).include(async_supabase_client)
+app = modal.App(name="reach-processor", image=image)
 
 #################################################
 # BACKGROUND WORKER FUNCTION
 #################################################
 
 @app.function(
-    cpu=1.0,
-    memory=1024,
-    secrets=[modal.Secret.from_name("reach-secrets")]
+    secrets=[modal.Secret.from_name("reach-secrets")],
+    timeout=86400 # 24 hours
 )
-async def process_jobs(limit: int):
+async def process_jobs(limit: int = 5):
     """
     Background worker that processes jobs from the queue.
     """
@@ -84,7 +85,7 @@ async def process_jobs(limit: int):
             # Fetch jobs from queue
             response = await supabase.schema("pgmq_public").rpc("read", {
                 "queue_name": "processing_queue",
-                "sleep_seconds": 300,
+                "sleep_seconds": 600,
                 "n": limit
             }).execute()
             
@@ -108,7 +109,7 @@ async def process_jobs(limit: int):
                     total_processed += 1
             
             # Break if we got fewer jobs than requested (queue is empty)
-            if len(jobs_data) < limit:
+            if int(len(jobs_data)) < int(limit):
                 logger.info("Reached end of queue")
                 break
                 
@@ -123,11 +124,7 @@ async def process_jobs(limit: int):
 # WEB ENDPOINT (Authentication & Job Spawning)
 #################################################
 
-@app.function(
-    cpu=0.25,
-    memory=256,
-    secrets=[modal.Secret.from_name("reach-secrets")]
-)
+@app.function(secrets=[modal.Secret.from_name("reach-secrets")])
 @modal.fastapi_endpoint(method="POST")
 async def trigger_processing(
     token: HTTPAuthorizationCredentials = Depends(auth_scheme),
@@ -145,13 +142,16 @@ async def trigger_processing(
             headers={"WWW-Authenticate": "Bearer"},
         )
     
-    # Spawn background worker (non-blocking)
-    call = process_jobs.spawn(limit=request.limit)
+    # Spawn background workers (non-blocking)
+    worker_ids = []
+    for _ in range(request.worker_count):
+        call = await process_jobs.spawn.aio(limit=request.limit)
+        worker_ids.append(call.object_id)
     
     return ProcessResponse(
         status="accepted",
-        message=f"Processing job spawned with ID: {call.object_id}",
-        job_count=request.limit
+        message=f"Spawned {request.worker_count} workers with IDs: {', '.join(worker_ids)}",
+        worker_count=request.worker_count
     )
 
 #################################################
@@ -163,3 +163,8 @@ async def trigger_processing(
 async def health() -> dict:
     """Health check endpoint"""
     return {"status": "healthy", "service": "reach-processor"}
+
+# @app.local_entrypoint()
+# def main():
+#     call = process_jobs.spawn(limit=2)
+#     print(f"Spawned job with ID: {call.object_id}")

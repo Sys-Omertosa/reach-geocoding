@@ -56,7 +56,6 @@ async def url_to_b64_strings(url: str) -> List[str]:
             raise ValueError("Could not extract images from PDF")
     
     else:
-        b64_encoding = base64.b64encode(file).decode("utf-8")
-        strings.append(f"data:application/octet-stream;base64,{b64_encoding}")
+        raise ValueError(f"Unsupported file type: {file_type}")
     
     return strings

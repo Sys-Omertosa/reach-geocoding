@@ -2,11 +2,13 @@ from pydantic import Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
 from functools import lru_cache
 from pathlib import Path
+import os
 
 class Settings(BaseSettings):
     """
     Application settings loaded from environment variables.
-    Automatically reads from Backend/.env file.
+    Automatically reads from Backend/.env file if present.
+    Also works with Modal secrets (environment variables).
     """
     # Supabase - required fields
     supabase_url: str
@@ -24,7 +26,8 @@ class Settings(BaseSettings):
     cache_ttl_days: int = 30
     
     model_config = SettingsConfigDict(
-        env_file=str(Path(__file__).parent.parent / ".env"),
+        # Only use .env file if it exists (local dev), otherwise use env vars (Modal)
+        env_file=str(Path(__file__).parent.parent / ".env") if (Path(__file__).parent.parent / ".env").exists() else None,
         env_file_encoding='utf-8',
         extra='ignore',  # Ignore extra fields in .env
         case_sensitive=False  # Allow case-insensitive matching

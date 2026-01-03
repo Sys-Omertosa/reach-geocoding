@@ -1,7 +1,9 @@
 import json
 from uuid import uuid4
 from pydantic import ValidationError
-
+import os
+from typing import List
+from httpx import AsyncClient
 from processing_engine.processor_utils.llm_client import LLMClient
 from processing_engine.processor_utils.pipeline_prompts import messages
 from processing_engine.processor_utils.doc_utils import url_to_b64_strings
@@ -16,10 +18,10 @@ class PipelineProcessor():
         file = await url_to_b64_strings(job.message.url)
         llm_message = await messages(file)
         response = await self.llm.call(llm_message)
-        json_response, alert, alert_areas = self._parse(response, document_id, alert_id)
+        json_response, alert, alert_areas = await self._parse(response, document_id, alert_id)
         return json_response, alert, alert_areas
     
-    def _parse(self, response: str, document_id: str, alert_id: str) -> tuple[dict, Alert, list[AlertArea]]:
+    async def _parse(self, response: str, document_id: str, alert_id: str) -> tuple[dict, Alert, list[AlertArea]]:
         """Parse LLM JSON response"""
         response = response[response.find("{") : response.rfind("}") + 1]
         
@@ -47,9 +49,11 @@ class PipelineProcessor():
             # Create AlertArea objects from the areas list
             alert_areas = []
             for area_list in structured_alert.areas:
-                # TODO: Implement geocoding to get actual place_id
-                place_ids = str(uuid4())  # Placeholder until geocoding is implemented
+                place_ids = await self._geocode(area_list.place_names)
                 for place_id in place_ids:
+                    # Skip empty place_ids (unmatched locations)
+                    if not place_id:
+                        continue
                     alert_area_model = AlertArea(
                         alert_id=alert_id,
                         place_id=place_id,
@@ -67,3 +71,20 @@ class PipelineProcessor():
             raise ValueError(f"LLM returned invalid JSON: {e}")
         except ValidationError as e:
             raise ValueError(f"JSON doesn't match expected schema: {e}")
+        
+    async def _geocode(self, places: List[str]) -> List[str]:        
+        url = os.getenv("MODAL_GEOCODER")
+        auth_token = os.getenv("SECRET_KEY")
+        
+        async with AsyncClient(timeout=120.0) as http_client:
+            response = await http_client.post(
+                url,
+                headers={
+                    "Authorization": f"Bearer {auth_token}",
+                    "Content-Type": "application/json"
+                },
+                json={"place_names": places}
+            )
+            response.raise_for_status()
+            data = response.json()
+            return data.get("place_ids", [])
